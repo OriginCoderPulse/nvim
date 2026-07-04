@@ -83,10 +83,26 @@ vim.api.nvim_create_autocmd("UIEnter", {
 									"~/.config/kitty/",
 									"~/.config/lazygit/",
 								},
-								dev = { "~/.config", "~/Documents/Wors", "~/Documents/Private" },
+								dev = { "~/.config", "~/Documents/Work", "~/Documents/Private" },
 								max_depth = 2,
 								recent = false,
 							},
+							select = {
+								kinds = {
+									overseer_template = {
+										layout = {
+										  preset = "vscode",
+										  layout = {
+											width = 0.4,
+											height = 0.3,
+											min_width = 40,
+											border = "rounded",
+										  },
+										},
+									  },
+								}
+							}
+							
 						},
 						formatters = {
 							file = {

@@ -29,6 +29,7 @@ vim.opt.winborder = "rounded"
 vim.opt.confirm = false
 vim.opt.splitright = true
 vim.opt.laststatus = 0
+vim.opt.showtabline = 0
 
 vim.diagnostic.config({
 	virtual_text = true,

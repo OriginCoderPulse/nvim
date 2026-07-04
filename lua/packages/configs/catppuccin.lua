@@ -27,6 +27,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 				},
 				integrations = {
 					blink_cmp = { enabled = true, style = "bordered" },
+					overseer = true,
 				},
 				custom_highlights = function(C)
 					return {
@@ -49,6 +50,16 @@ vim.api.nvim_create_autocmd("VimEnter", {
 						BlinkCmpMenuSelection = { fg = C.peach, bg = C.none, style = { "bold" } },
 						BlinkCmpScrollBarGutter = { bg = C.none },
 						BlinkCmpScrollBarThumb = { bg = C.overlay0 },
+						OverseerPENDING = { fg = C.overlay0 },
+						OverseerRUNNING = { fg = C.yellow },
+						OverseerSUCCESS = { fg = C.green },
+						OverseerFAILURE = { fg = C.red },
+						OverseerCANCELED = { fg = C.overlay1 },
+						OverseerTask = { fg = C.text },
+						OverseerTaskBorder = { fg = C.surface1 },
+						OverseerOutput = { fg = C.subtext0 },
+						OverseerComponent = { fg = C.peach },
+						OverseerField = { fg = C.blue },
 					}
 				end,
 			})

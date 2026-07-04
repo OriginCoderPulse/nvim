@@ -38,6 +38,7 @@ Pack.load = load.load
 Pack.eager = load.eager
 Pack.configured = load.configured
 Pack.complete = require("hooks.complete")
+Pack.update = require("hooks.update").update
 local restart = require("hooks.restart")
 Pack.restart = restart.restart
 Pack.relaunch = restart.relaunch

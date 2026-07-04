@@ -33,11 +33,12 @@ end, { desc = "Open snacks help" })
 vim.keymap.set("n", "<leader>fp", function()
 	Snacks.picker.projects({
 		layout = {
-			preset = "select",
+			preset = "vscode",
 			layout = {
 				width = 0.4,
-				height = 0.4,
+				height = 0.3,
 				min_width = 40,
+				border = "rounded",
 			},
 		},
 	})
@@ -91,3 +92,11 @@ end, { desc = "Search for differences across multiple commits on the same branch
 vim.keymap.set("n", "<leader>fl", function()
 	Snacks.picker.grep()
 end, { desc = "Live grep" })
+
+vim.keymap.set("n", "<leader>fr", function()
+	vim.cmd.OverseerRun()
+end, { desc = "Run overseer task" })
+
+vim.keymap.set("n", "<leader>ft", function()
+	vim.cmd.OverseerToggle()
+end, { desc = "Toggle overseer task list" })

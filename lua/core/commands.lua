@@ -8,7 +8,7 @@ vim.api.nvim_create_user_command("PackUpdate", function(opts)
 	else
 		vim.notify("Checking updates for all plugins...", vim.log.levels.INFO)
 	end
-	vim.pack.update(targets, { force = force })
+	Pack.update(targets, { force = force })
 end, {
 	nargs = "*",
 	bang = true,
@@ -18,7 +18,7 @@ end, {
 
 vim.api.nvim_create_user_command("PackStatus", function(opts)
 	local targets = #opts.fargs > 0 and opts.fargs or nil
-	vim.pack.update(targets, { offline = true })
+	Pack.update(targets, { offline = true })
 end, {
 	nargs = "*",
 	complete = Pack.complete,

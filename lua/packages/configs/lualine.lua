@@ -37,11 +37,9 @@ vim.api.nvim_create_autocmd("FileType", {
 					globalstatus = true,
 					refresh = {
 						statusline = 1,
-						tabline = 1,
 						winbar = 1,
 					},
 				},
-				tabline = {},
 				sections = {
 					lualine_a = {
 						"diff",
@@ -60,6 +58,10 @@ vim.api.nvim_create_autocmd("FileType", {
 							symbols = {
 								unnamed = " ",
 							},
+						},
+						{
+							"overseer",
+							colored = true,
 						},
 					},
 					lualine_c = {},
