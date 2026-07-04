@@ -1,0 +1,13 @@
+[languages]
+
+lua = ["stylua -s -"]
+javascript = ["oxfmt --stdin-filepath=stdin.js"]
+typescript = ["oxfmt --stdin-filepath=stdin.ts"]
+json = ["oxfmt --stdin-filepath=stdin.json"]
+jsonc = ["oxfmt --stdin-filepath=stdin.jsonc"]
+json5 = ["oxfmt --stdin-filepath=stdin.json5"]
+css = ["oxfmt --stdin-filepath=stdin.css"]
+scss = ["oxfmt --stdin-filepath=stdin.scss"]
+less = ["oxfmt --stdin-filepath=stdin.less"]
+html = ["oxfmt --stdin-filepath=stdin.html"]
+vue = ["oxfmt --stdin-filepath=stdin.vue"]

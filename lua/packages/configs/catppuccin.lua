@@ -1,0 +1,58 @@
+if vim.g.vscode then
+	return
+end
+
+local P = {
+	spec = {
+		src = "https://github.com/catppuccin/nvim",
+		name = "catppuccin",
+	},
+	module = "catppuccin",
+}
+
+PackUtils.register_plugin(P)
+
+vim.api.nvim_create_autocmd("VimEnter", {
+	callback = function()
+		PackUtils.load_plugin(P, function(plugin)
+			plugin.setup({
+				flavour = "mocha",
+				transparent_background = true,
+				float = {
+					transparent = true,
+					solid = false,
+				},
+				styles = {
+					comments = {},
+				},
+				integrations = {
+					blink_cmp = { enabled = true, style = "bordered" },
+				},
+				custom_highlights = function(C)
+					return {
+						Comment = { fg = C.overlay0 },
+						NormalFloat = { fg = C.text, bg = C.none },
+						FloatBorder = { fg = C.surface1, bg = C.none },
+						FloatTitle = { fg = C.subtext0, bg = C.none },
+						FloatFooter = { fg = C.subtext0, bg = C.none },
+						Pmenu = { fg = C.text, bg = C.none },
+						PmenuSel = { fg = C.text, bg = C.none, style = { "bold" } },
+						PmenuSbar = { bg = C.none },
+						PmenuThumb = { bg = C.overlay0 },
+						WinSeparator = { fg = C.surface1, bg = C.none },
+						BlinkCmpMenu = { fg = C.text, bg = C.none },
+						BlinkCmpMenuBorder = { fg = C.surface1, bg = C.none },
+						BlinkCmpDoc = { fg = C.text, bg = C.none },
+						BlinkCmpDocBorder = { fg = C.surface1, bg = C.none },
+						BlinkCmpDocSeparator = { fg = C.surface1, bg = C.none },
+						BlinkCmpSignatureHelpBorder = { fg = C.surface1, bg = C.none },
+						BlinkCmpMenuSelection = { fg = C.peach, bg = C.none, style = { "bold" } },
+						BlinkCmpScrollBarGutter = { bg = C.none },
+						BlinkCmpScrollBarThumb = { bg = C.overlay0 },
+					}
+				end,
+			})
+			vim.cmd.colorscheme("catppuccin")
+		end)
+	end,
+})
