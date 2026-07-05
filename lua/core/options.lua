@@ -22,6 +22,8 @@ vim.opt.pumheight = 10
 vim.opt.pumwidth = 10
 vim.opt.autoread = true
 vim.opt.showmode = false
+-- vim.opt.showtabline = 0
+vim.opt.ruler = false
 vim.opt.winblend = 0
 vim.opt.fillchars = "eob: "
 vim.opt.wildignore = "node_modules/,*.yaml,*.log,*.lock,package.json"
@@ -29,7 +31,6 @@ vim.opt.winborder = "rounded"
 vim.opt.confirm = false
 vim.opt.splitright = true
 vim.opt.laststatus = 0
-vim.opt.showtabline = 0
 
 vim.diagnostic.config({
 	virtual_text = true,
