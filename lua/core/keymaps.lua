@@ -56,7 +56,7 @@ end, { desc = "Open snacks diagnostics" })
 
 vim.keymap.set("n", "<leader>fc", function()
 	Snacks.picker.lsp_config({
-		layout = "dropdown",
+		layout = "select",
 	})
 end, { desc = "Open snacks help" })
 

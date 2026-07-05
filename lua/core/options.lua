@@ -45,4 +45,9 @@ vim.diagnostic.config({
 	},
 })
 
-vim.lsp.enable({ "lua_ls", "jsonls", "ts_ls", "vue_ls", "css_variables", "emmet_language_server" })
+vim.lsp.enable("jsonls")
+vim.lsp.enable("css_variables")
+vim.lsp.enable("emmet_ls")
+vim.lsp.enable("lua_ls")
+vim.lsp.enable("ts_ls")
+vim.lsp.enable("vue_ls")
