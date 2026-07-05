@@ -1,5 +1,4 @@
--- 公共库
-require("hooks")
+require("hooks").boot("packages.configs")
 
 -- 基本配置
 require("core.options")
@@ -9,6 +8,3 @@ require("core.keymaps")
 
 -- 自定义命令
 require("core.commands")
-
--- 插件配置
-require("packages.manager")

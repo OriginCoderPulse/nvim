@@ -1,5 +1,5 @@
 --- 插件管理公共 API，挂载到全局 Pack
-_G.Pack = {
+_G.Pack = vim.tbl_extend("force", _G.Pack or {
 	building = {},
 	inited = {},
 	loaded = {},
@@ -8,40 +8,34 @@ _G.Pack = {
 	idle = {},
 	registry = {},
 	refs = {},
-}
+}, {
+	parse = require("hooks.deps.parse"),
+	path = require("hooks.deps.path"),
+	available = require("hooks.deps.available"),
+	norm = require("hooks.deps").norm,
+	needed = require("hooks.deps").needed,
+	protect = require("hooks.deps").protect,
+	users = require("hooks.deps").users,
+	depname = require("hooks.deps").depname,
+	walk = require("hooks.deps").walk,
+	track = require("hooks.deps").track,
+	register = require("hooks.register"),
+	identity = require("hooks.register.identity"),
+	load = require("hooks.load").load,
+	eager = require("hooks.load").eager,
+	configured = require("hooks.load").configured,
+	build = require("hooks.build"),
+	ensure = require("hooks.build.ensure"),
+	listen = require("hooks.build.listen"),
+	sync = require("hooks.install.sync"),
+	repair = require("hooks.install.repair"),
+	install = require("hooks.install"),
+	update = require("hooks.update").update,
+	complete = require("hooks.update.complete"),
+	restart = require("hooks.restart").restart,
+	relaunch = require("hooks.restart").relaunch,
+	root = require("hooks.util.root"),
+	boot = require("hooks.boot"),
+})
 
-local Pack = _G.Pack
-
-local deps = require("hooks.deps")
-Pack.norm = deps.norm
-Pack.needed = deps.needed
-Pack.protect = deps.protect
-Pack.users = deps.users
-Pack.depname = deps.depname
-Pack.walk = deps.walk
-Pack.track = deps.track
-
-Pack.register = require("hooks.register")
-Pack.identity = require("hooks.identity")
-Pack.parse = require("hooks.parse")
-Pack.path = require("hooks.path")
-Pack.available = require("hooks.available")
-Pack.build = require("hooks.build")
-Pack.ensure = require("hooks.ensure")
-Pack.listen = require("hooks.listen")
-Pack.sync = require("hooks.sync")
-Pack.repair = require("hooks.repair")
-Pack.install = require("hooks.install")
-Pack.boot = require("hooks.boot")
-local load = require("hooks.load")
-Pack.load = load.load
-Pack.eager = load.eager
-Pack.configured = load.configured
-Pack.complete = require("hooks.complete")
-Pack.update = require("hooks.update").update
-local restart = require("hooks.restart")
-Pack.restart = restart.restart
-Pack.relaunch = restart.relaunch
-Pack.root = require("hooks.root")
-
-return Pack
+return _G.Pack

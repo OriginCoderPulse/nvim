@@ -1,5 +1,5 @@
 --- 检测并清理已登记但 git 仓库不完整的插件（clone 中断等）
-local healthy = require("hooks.healthy")
+local healthy = require("hooks.deps.healthy")
 
 local function repair()
 	local Pack = _G.Pack

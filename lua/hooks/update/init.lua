@@ -1,8 +1,6 @@
-local deps = require("hooks.deps")
-
 --- 将依赖树中的插件名写入 locked
 local function mark_tree(dep, locked)
-	local item = deps.norm(dep)
+	local item = _G.Pack.norm(dep)
 	locked[item.name] = true
 	if item.deps then
 		for _, nested in ipairs(item.deps) do
@@ -64,8 +62,7 @@ end
 ---@param targets? string[]
 ---@param opts? table
 local function update(targets, opts)
-	local filtered, skipped = filter_targets(targets)
-
+	local filtered, _ = filter_targets(targets)
 	return vim.pack.update(filtered, opts)
 end
 

@@ -44,7 +44,7 @@ local function install(active_specs, disabled_specs)
 
 	Pack.sync(active_specs, disabled_specs)
 	Pack.repair()
-	vim.pack.add(sort(active_specs))
+	vim.pack.add(sort(active_specs), { confirm = false, load = false })
 	Pack.relaunch()
 end
 

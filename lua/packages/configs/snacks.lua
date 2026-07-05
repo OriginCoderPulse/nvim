@@ -87,7 +87,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 								"~/.config/kitty/",
 								"~/.config/lazygit/",
 							},
-							dev = { "~/.config", "~/Documents/Work", "~/Documents/Private" },
+							dev = { "~/.config", "~/Documents/Work/", "~/Documents/Private/" },
 							max_depth = 2,
 							recent = false,
 						},
