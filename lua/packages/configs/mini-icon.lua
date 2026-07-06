@@ -3,7 +3,10 @@ if vim.g.vscode then
 end
 
 local P = {
-	spec = "https://github.com/nvim-mini/mini.icons",
+	spec = {
+		src = "https://github.com/nvim-mini/mini.icons",
+		version = "stable",
+	},
 	module = "mini.icons",
 }
 
@@ -13,7 +16,6 @@ vim.api.nvim_create_autocmd("UIEnter", {
 	callback = function()
 		vim.schedule(function()
 			Pack.load(P, function(plugin)
-				plugin.mock_nvim_web_devicons()
 				plugin.setup({
 					style = "glyph",
 					default = {
