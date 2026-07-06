@@ -29,9 +29,16 @@ vim.api.nvim_create_autocmd("VimEnter", {
 					blink_cmp = { enabled = true, style = "bordered" },
 					overseer = true,
 					mason = true,
-					snacks = true,
+					snacks = {
+						enabled = true,
+					},
 					noice = true,
 					treesitter = true,
+					gitsigns = {
+						enabled = true,
+						transparent = true,
+					},
+					render_markdown = true,
 				},
 				custom_highlights = function(C)
 					return {

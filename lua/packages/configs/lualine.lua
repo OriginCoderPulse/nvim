@@ -103,6 +103,7 @@ vim.api.nvim_create_autocmd("FileType", {
 								"snacks_picker_input",
 								"snacks_picker_list",
 								"unnamed",
+								"snacks_dashboard",
 							},
 							icons = {
 								active = " ",
