@@ -86,6 +86,12 @@ vim.api.nvim_create_autocmd("VimEnter", {
 						MasonHeading = { fg = C.text, bg = C.none, bold = true },
 						MasonNormal = { fg = C.text, bg = C.none },
 						MasonBackdrop = { bg = C.none },
+						SnacksPickerGitStatusModified = { fg = C.yellow },
+						SnacksPickerGitStatusAdded = { fg = C.green },
+						SnacksPickerGitStatusDeleted = { fg = C.red },
+						SnacksPickerGitStatusUntracked = { fg = C.subtext0 },
+						SnacksPickerGitStatusStaged = { fg = C.green },
+						SnacksPickerGitStatusUnmerged = { fg = C.red },
 					}
 				end,
 			})

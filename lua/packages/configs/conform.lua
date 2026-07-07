@@ -28,7 +28,7 @@ local P = {
 
 Pack.register(P)
 
-vim.api.nvim_create_autocmd("BufWritePost", {
+vim.api.nvim_create_autocmd("FileType", {
 	callback = function()
 		Pack.load(P, function(plugin)
 			plugin.setup({
@@ -46,6 +46,7 @@ vim.api.nvim_create_autocmd("BufWritePost", {
 					scss = { "oxfmt" },
 					less = { "oxfmt" },
 					html = { "oxfmt" },
+					rust = { "rustfmt" },
 				},
 				format_on_save = {
 					timeout_ms = 3000,
