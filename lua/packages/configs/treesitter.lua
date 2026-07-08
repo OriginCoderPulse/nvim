@@ -1,7 +1,3 @@
-if vim.g.vscode then
-	return
-end
-
 local ensure_installed = {
 	"json",
 	"rust",

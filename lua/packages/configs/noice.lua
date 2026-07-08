@@ -1,7 +1,3 @@
-if vim.g.vscode then
-	return
-end
-
 local P = {
 	spec = "https://github.com/folke/noice.nvim",
 	deps = {

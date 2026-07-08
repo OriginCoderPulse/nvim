@@ -1,7 +1,3 @@
-if vim.g.vscode then
-	return
-end
-
 local P = {
 	spec = {
 		src = "https://github.com/nvim-mini/mini.icons",
