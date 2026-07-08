@@ -7,7 +7,11 @@ local mark_tree
 mark_tree = function(dep, locked)
 	local ok, item = pcall(_G.Pack.norm, dep)
 	if not ok then
-		notify_once("update:dep:" .. tostring(dep), "update 依赖解析失败: " .. tostring(item), vim.log.levels.ERROR)
+		notify_once(
+			"update:dep:" .. tostring(dep),
+			"update 依赖解析失败: " .. tostring(item),
+			vim.log.levels.ERROR
+		)
 		return
 	end
 	locked[item.name] = true

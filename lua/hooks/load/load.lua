@@ -56,11 +56,7 @@ return function(P, config_fn)
 		end
 		local packadd_ok = pcall(vim.cmd.packadd, P.name)
 		if not packadd_ok then
-			notify_once(
-				"load:packadd:" .. P.name,
-				"Pack.load(" .. P.name .. "): packadd 失败",
-				vim.log.levels.WARN
-			)
+			notify_once("load:packadd:" .. P.name, "Pack.load(" .. P.name .. "): packadd 失败", vim.log.levels.WARN)
 			return false
 		end
 		Pack.loaded[P.name] = true

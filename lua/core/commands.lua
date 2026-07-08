@@ -46,3 +46,12 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
 		end
 	end,
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+	callback = function()
+		local ok, conform = pcall(require, "conform")
+		if ok then
+			conform.format({ async = true, timeout_ms = 3000 })
+		end
+	end,
+})

@@ -6,10 +6,7 @@ local filter_targets = require("hooks.update.filter")
 return function(targets, opts)
 	local filtered, skipped = filter_targets(targets)
 	if #skipped > 0 then
-		vim.notify(
-			"以下 lock 插件已跳过更新: " .. table.concat(skipped, ", "),
-			vim.log.levels.INFO
-		)
+		vim.notify("以下 lock 插件已跳过更新: " .. table.concat(skipped, ", "), vim.log.levels.INFO)
 	end
 	if #filtered == 0 then
 		return nil

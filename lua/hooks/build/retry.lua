@@ -30,7 +30,13 @@ local function schedule(name, build_cmd)
 	end
 	state.attempts[name] = next_attempt
 	vim.notify(
-		"⚠️ " .. name .. " build 失败，" .. (state.delay_ms / 1000) .. "s 后第 " .. next_attempt .. " 次重试...",
+		"⚠️ "
+			.. name
+			.. " build 失败，"
+			.. (state.delay_ms / 1000)
+			.. "s 后第 "
+			.. next_attempt
+			.. " 次重试...",
 		vim.log.levels.WARN
 	)
 	state.timers[name] = vim.defer_fn(function()
