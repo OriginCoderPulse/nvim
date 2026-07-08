@@ -3,11 +3,12 @@ local healthy = require("hooks.deps.healthy")
 
 local function available(name)
 	local Pack = _G.Pack
+	name = Pack.parse(name)
 	local dir = Pack.path(name)
 	if not dir then
 		return false
 	end
-	return healthy(dir)
+	return healthy.healthy(dir)
 end
 
 return available

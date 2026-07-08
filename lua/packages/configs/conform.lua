@@ -8,7 +8,7 @@ local P = {
 		{
 			src = "https://github.com/mason-org/mason.nvim",
 			module = "mason",
-			immediately = true,
+			immediately = false,
 			setup = function(plugin)
 				plugin.setup({
 					PATH = "prepend",

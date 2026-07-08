@@ -1,7 +1,15 @@
 --- 同步插件注册表：清理孤儿包并登记禁用列表
-local function sync(_active_specs, disabled_specs)
+---@param active_specs? table
+---@param disabled_specs? table
+return function(active_specs, disabled_specs)
 	local Pack = _G.Pack
+	active_specs = active_specs or Pack.active
 	disabled_specs = disabled_specs or {}
+
+	for _, spec in ipairs(active_specs) do
+		local name = Pack.parse(spec)
+		Pack.disabled[name] = nil
+	end
 
 	for _, spec in ipairs(disabled_specs) do
 		local name = Pack.parse(spec)
@@ -9,13 +17,9 @@ local function sync(_active_specs, disabled_specs)
 	end
 
 	local protected = Pack.protect()
-
-	if vim.tbl_isempty(protected) then
-		return
-	end
-
 	local pack_dir = vim.fn.stdpath("data") .. "/site/pack"
 	local installed_plugins = {}
+	local seen = {}
 
 	if vim.fn.isdirectory(pack_dir) ~= 1 then
 		return
@@ -27,8 +31,9 @@ local function sync(_active_specs, disabled_specs)
 				local dir = pack_dir .. "/" .. pkg_name .. "/" .. type_dir
 				if vim.fn.isdirectory(dir) == 1 then
 					for name, ftype in vim.fs.dir(dir) do
-						if ftype == "directory" and name ~= "doc" then
-							table.insert(installed_plugins, name)
+						if ftype == "directory" and name ~= "doc" and not seen[name] then
+							seen[name] = true
+							installed_plugins[#installed_plugins + 1] = name
 						end
 					end
 				end
@@ -67,11 +72,14 @@ local function sync(_active_specs, disabled_specs)
 	end
 
 	if #to_delete > 0 then
-		vim.schedule(function()
-			vim.notify("🧹 Clean Up Orphaned Plugins: " .. table.concat(to_delete, ", "), vim.log.levels.INFO)
-			vim.pack.del(to_delete)
-		end)
+		vim.notify("🧹 Clean Up Orphaned Plugins: " .. table.concat(to_delete, ", "), vim.log.levels.INFO)
+		vim.pack.del(to_delete)
+		local healthy = require("hooks.deps.healthy")
+		for _, name in ipairs(to_delete) do
+			local dir = Pack.path(name)
+			if dir then
+				healthy.invalidate(dir)
+			end
+		end
 	end
 end
-
-return sync

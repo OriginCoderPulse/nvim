@@ -66,7 +66,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 					},
 				},
 				picker = {
-					enabled = true,
+					enabled = false, -- 首次快捷键触发 Snacks.picker.* 时再加载
 					prompt = "  ",
 					actions = {
 						picker_select = function(picker)
@@ -122,6 +122,17 @@ vim.api.nvim_create_autocmd("VimEnter", {
 									},
 								},
 							},
+						},
+						lsp_config = {
+							format = function(item, picker)
+								if not item.attached_buf then
+									item = vim.tbl_extend("force", {}, item, {
+										attached = false,
+										enabled = false,
+									})
+								end
+								return require("snacks.picker.source.lsp.config").format(item, picker)
+							end,
 						},
 					},
 					formatters = {

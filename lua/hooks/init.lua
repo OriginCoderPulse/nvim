@@ -8,6 +8,7 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	idle = {},
 	registry = {},
 	refs = {},
+	_listeners = {},
 }, {
 	parse = require("hooks.deps.parse"),
 	path = require("hooks.deps.path"),
@@ -24,6 +25,7 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	load = require("hooks.load").load,
 	eager = require("hooks.load").eager,
 	configured = require("hooks.load").configured,
+	load_listen = require("hooks.load.listen"),
 	build = require("hooks.build"),
 	ensure = require("hooks.build.ensure"),
 	listen = require("hooks.build.listen"),
@@ -35,6 +37,7 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	restart = require("hooks.restart").restart,
 	relaunch = require("hooks.restart").relaunch,
 	root = require("hooks.util.root"),
+	lsp = require("hooks.lsp"),
 	boot = require("hooks.boot"),
 })
 

@@ -4,16 +4,28 @@ local healthy = require("hooks.deps.healthy")
 local function repair()
 	local Pack = _G.Pack
 
-	if vim.tbl_isempty(Pack.registry) then
+	if vim.tbl_isempty(Pack.registry) and vim.tbl_isempty(Pack.active) then
 		return
+	end
+
+	local names = {}
+	for name in pairs(Pack.registry) do
+		names[name] = true
+	end
+	for _, spec in ipairs(Pack.active) do
+		names[Pack.parse(spec)] = true
+	end
+	for _, spec in ipairs(Pack.idle) do
+		names[Pack.parse(spec)] = true
 	end
 
 	local to_delete = {}
 
-	for name in pairs(Pack.registry) do
+	for name in pairs(names) do
 		local dir = Pack.path(name)
-		if dir and not healthy(dir) then
+		if dir and not healthy.healthy(dir) then
 			to_delete[#to_delete + 1] = name
+			healthy.invalidate(dir)
 		end
 	end
 

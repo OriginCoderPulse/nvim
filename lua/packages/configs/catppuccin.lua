@@ -12,7 +12,8 @@ local P = {
 
 Pack.register(P)
 
-vim.api.nvim_create_autocmd("VimEnter", {
+vim.api.nvim_create_autocmd("UIEnter", {
+	once = true,
 	callback = function()
 		Pack.load(P, function(plugin)
 			plugin.setup({
