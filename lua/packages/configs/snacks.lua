@@ -10,6 +10,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 		Pack.load(P, function(plugin)
 			plugin.setup({
 				dashboard = {
+					enabled = true,
 					sections = {
 						{ section = "header" },
 					},

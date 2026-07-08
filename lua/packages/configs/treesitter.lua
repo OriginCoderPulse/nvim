@@ -31,7 +31,6 @@ Pack.register(P)
 
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = ensure_installed,
-	group = vim.api.nvim_create_augroup("NativeTreesitter", { clear = true }),
 	callback = function(args)
 		local buf = args.buf
 		local ft = vim.bo[buf].filetype

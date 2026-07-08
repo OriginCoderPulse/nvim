@@ -8,7 +8,7 @@ local P = {
 
 Pack.register(P)
 
-vim.api.nvim_create_autocmd("FileType", {
+vim.api.nvim_create_autocmd("BufReadPost", {
 	callback = function()
 		Pack.load(P, function(plugin)
 			plugin.setup({
