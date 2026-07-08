@@ -58,6 +58,6 @@ Pack.lsp.enable({
 	css = { "emmet_ls", "css_variables" },
 	scss = { "emmet_ls", "css_variables" },
 	less = { "emmet_ls", "css_variables" },
-	sass = { "emmet_ls" },
+	sass = { "emmet_ls", "css_variables" },
 	html = { "emmet_ls" },
 })
