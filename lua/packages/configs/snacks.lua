@@ -66,7 +66,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 					},
 				},
 				picker = {
-					enabled = false, -- 首次快捷键触发 Snacks.picker.* 时再加载
+					enabled = true,
 					prompt = "  ",
 					actions = {
 						picker_select = function(picker)

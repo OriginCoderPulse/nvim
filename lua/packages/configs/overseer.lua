@@ -5,7 +5,6 @@ end
 local P = {
 	spec = "https://github.com/stevearc/overseer.nvim",
 	module = "overseer",
-	lock = true,
 }
 
 Pack.register(P)

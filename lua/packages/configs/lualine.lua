@@ -104,6 +104,7 @@ vim.api.nvim_create_autocmd("FileType", {
 								"snacks_picker_list",
 								"unnamed",
 								"snacks_dashboard",
+								"toml",
 							},
 							icons = {
 								active = " ",
