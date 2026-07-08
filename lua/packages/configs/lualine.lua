@@ -39,7 +39,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 				sections = {
 					lualine_a = {},
 					lualine_b = {
-						"branch",
 						{
 							"filename",
 							path = 0,
@@ -61,6 +60,11 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 					},
 					lualine_c = {},
 					lualine_x = {
+						{
+							"branch",
+							icon = { "" },
+							color = { fg = "#b4befe" },
+						},
 						"diff",
 						{
 							"diagnostics",
@@ -96,8 +100,8 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 								"toml",
 							},
 							icons = {
-								active = " ",
-								inactive = " ",
+								active = "",
+								inactive = "",
 							},
 						},
 					},
