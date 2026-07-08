@@ -100,4 +100,3 @@ end, { desc = "Run overseer task" })
 vim.keymap.set("n", "<leader>ft", function()
 	vim.cmd.OverseerToggle()
 end, { desc = "Toggle overseer task list" })
-
