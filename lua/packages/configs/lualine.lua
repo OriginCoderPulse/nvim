@@ -9,6 +9,7 @@ local P = {
 Pack.register(P)
 
 vim.api.nvim_create_autocmd("BufReadPost", {
+	once = true,
 	callback = function()
 		Pack.load(P, function(plugin)
 			plugin.setup({
@@ -31,34 +32,22 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 					section_separators = { left = " ", right = " " },
 					always_divide_middle = true,
 					globalstatus = true,
-					refresh = {
-						statusline = 1,
-						winbar = 1,
-					},
 				},
 				sections = {
 					lualine_a = {},
 					lualine_b = {
 						{
-							"filename",
-							path = 0,
-							file_status = false,
-							newfile_status = false,
-							symbols = {
-								unnamed = " ",
-							},
-						},
-						{
 							"filetype",
-							icon_only = true,
+							icon_only = false,
 						},
-						{ "datetime", style = "󰄉 %Y˚%m˚%d | %H:%M:%S" },
 						{
 							"overseer",
 							colored = true,
 						},
 					},
-					lualine_c = {},
+					lualine_c = {
+						{ "datetime", style = "󰄉 %Y˚%m˚%d | %H:%M:%S", color = { fg = "#f38ba8" } },
+					},
 					lualine_x = {
 						{
 							"branch",
@@ -111,6 +100,16 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 							icons_enabled = true,
 							icon = { "", align = "right" },
 							color = { fg = "#a6e3a1" },
+						},
+						{
+							"filename",
+							path = 0,
+							file_status = false,
+							newfile_status = false,
+							symbols = {
+								unnamed = " ",
+							},
+							color = { fg = "#b4befe" },
 						},
 					},
 				},

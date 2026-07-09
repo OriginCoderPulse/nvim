@@ -38,17 +38,11 @@ vim.keymap.set("n", "<leader>fp", function()
 				width = 0.4,
 				height = 0.3,
 				min_width = 40,
-				border = "rounded",
+				border = nil,
 			},
 		},
 	})
 end, { desc = "Open snacks project" })
-
-vim.keymap.set("n", "<leader>fs", function()
-	Snacks.picker.lsp_workspace_symbols({
-		layout = "left",
-	})
-end, { desc = "Open snacks lsp_workspace_symbols" })
 
 vim.keymap.set("n", "<leader>fd", function()
 	Snacks.picker.diagnostics()

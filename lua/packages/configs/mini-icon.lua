@@ -12,6 +12,7 @@ vim.api.nvim_create_autocmd("UIEnter", {
 	callback = function()
 		vim.schedule(function()
 			Pack.load(P, function(plugin)
+				plugin.mock_nvim_web_devicons()
 				plugin.setup({
 					style = "glyph",
 					default = {
