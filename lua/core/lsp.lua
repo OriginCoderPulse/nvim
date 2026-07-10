@@ -1,0 +1,16 @@
+Pack.lsp.enable({
+	lua = { "lua_ls" },
+	rust = { "rust_ls" },
+	json = { "jsonls" },
+	jsonc = { "jsonls" },
+	javascript = { "ts_ls" },
+	javascriptreact = { "ts_ls", "emmet_ls" },
+	typescript = { "ts_ls" },
+	typescriptreact = { "ts_ls", "emmet_ls" },
+	vue = { "ts_ls", "vue_ls", "emmet_ls", "css_variables" },
+	css = { "emmet_ls", "css_variables" },
+	scss = { "emmet_ls", "css_variables" },
+	less = { "emmet_ls", "css_variables" },
+	sass = { "emmet_ls", "css_variables" },
+	html = { "emmet_ls" },
+})

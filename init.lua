@@ -1,10 +1,8 @@
-require("hooks").boot("packages.configs")
+require("hooks")
 
--- 基本配置
-require("core.options")
-
--- 键盘映射
-require("core.keymaps")
-
--- 自定义命令
-require("core.commands")
+Pack.boot("packages.configs"):custom({
+	{ "core.options", immediately = true },
+	"core.keymaps",
+	"core.commands",
+	"core.lsp",
+})

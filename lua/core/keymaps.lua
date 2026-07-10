@@ -59,7 +59,7 @@ vim.keymap.set("n", "<leader>e", function()
 end, { desc = "Open snacks explorer" })
 
 vim.keymap.set("n", "<leader>ff", function()
-	Snacks.picker.files({
+	Snacks.picker.smart({
 		layout = {
 			preset = "select",
 			layout = {

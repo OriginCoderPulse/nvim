@@ -6,6 +6,16 @@ local listen = require("hooks.lsp.listen")
 
 local M = {}
 
+local function activate()
+	if state.activated then
+		return
+	end
+	state.activated = true
+	state.lazy_pending = false
+	listen()
+	sync(nil, true)
+end
+
 ---@param map table<string, string|string[]>
 function M.enable(map)
 	if type(map) ~= "table" then
@@ -23,8 +33,25 @@ function M.enable(map)
 		end
 	end
 
-	listen()
-	sync(nil, true)
+	-- 已激活：只合并映射并同步
+	if state.activated then
+		sync(nil, true)
+		return
+	end
+
+	-- 内部登记：首个 FileType 再真正碰 vim.lsp
+	if state.lazy_pending then
+		return
+	end
+	state.lazy_pending = true
+
+	vim.api.nvim_create_autocmd("FileType", {
+		once = true,
+		desc = "Pack.lsp.enable: load vim.lsp on first FileType",
+		callback = function()
+			vim.schedule(activate)
+		end,
+	})
 end
 
 ---@param name string
@@ -32,8 +59,10 @@ function M.disable(name)
 	name = state.norm(name)
 	state.disabled[name] = true
 	state.enabled[name] = nil
-	vim.lsp.enable(name, false)
-	control.stop(name)
+	if state.activated then
+		vim.lsp.enable(name, false)
+		control.stop(name)
+	end
 end
 
 ---@return boolean

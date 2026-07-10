@@ -206,6 +206,5 @@ Pack.register({
 				},
 			},
 		})
-
 	end,
 })

@@ -1,33 +1,18 @@
---- 启动编排：resolve → restart 监听 → 加载配置 → load 监听 → UIEnter install
-local resolve_config = require("hooks.boot.resolve")
-local load_configs = require("hooks.boot.load_configs")
-local install = require("hooks.install")
+--- 启动编排：返回链式句柄，:custom() 或延后自动 :run()
+--- 顺序：custom(immediately=true) → packages 配置 → custom(其余，最后)
+local Handle = require("hooks.boot.handle")
 
 ---@param config string
+---@return Pack.BootHandle
 return function(config)
-	local Pack = _G.Pack
-	if Pack._booted then
-		return Pack
-	end
+	local handle = Handle.new(config)
 
-	local dir, prefix = resolve_config(config)
-	if not dir or not prefix then
-		return Pack
-	end
+	-- 仅 boot() 未接 :custom() 时，在当前脚本后续逻辑跑完后自动启动
+	vim.schedule(function()
+		if not handle._ran then
+			handle:run()
+		end
+	end)
 
-	Pack.restart()
-	if not load_configs(dir, prefix) then
-		return Pack
-	end
-	Pack.load_listen()
-	Pack._booted = true
-
-	vim.api.nvim_create_autocmd("UIEnter", {
-		once = true,
-		callback = function()
-			vim.schedule(install)
-		end,
-	})
-
-	return Pack
+	return handle
 end

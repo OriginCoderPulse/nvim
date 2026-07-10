@@ -189,6 +189,14 @@
 ---@field P Pack.Plugin
 ---@field load fun(self: Pack.Handle, opts?: Pack.LoadOpts): Pack.Handle
 
+---@class Pack.BootCustomEntry
+---@field [1] string 模块路径，如 `"core.options"`
+---@field immediately? boolean `true`：hooks 之前；缺省则最后加载（无此字段时可直接写字符串 `"mod"`）
+
+---@class Pack.BootHandle
+---@field custom fun(self: Pack.BootHandle, entries?: (string|Pack.BootCustomEntry)[]): Pack 登记 custom 并启动。字符串项=最后加载；`{ mod, immediately=true }`=hooks 前
+---@field run fun(self: Pack.BootHandle): Pack 启动（无 custom 时也可）
+
 ---@class Pack
 ---@field register fun(P: Pack.Plugin): Pack.Handle|nil
 ---@field load fun(P: Pack.Plugin, config_fn?: fun(plugin: any)): boolean
@@ -197,7 +205,7 @@
 ---@field path fun(name: string): string
 ---@field available fun(name: string): boolean
 ---@field eager fun()
----@field boot fun(config: string): Pack
+---@field boot fun(config: string): Pack.BootHandle
 ---@field install fun(active_specs?: table, disabled_specs?: table)
 ---@field update fun(targets?: string[], opts?: table)
 ---@field complete fun(arglead: string, cmdline: string, cursorpos: integer): string[]
@@ -214,7 +222,10 @@
 ---@field _booted? boolean
 
 ---@class Pack.Lsp
----@field enable fun(servers: string[]|table)
+---@field enable fun(servers: table<string, string|string[]>) 登记 ft→server；内部延到首个 FileType 再加载 vim.lsp
+---@field disable fun(name: string)
+---@field is_enabled fun(name: string): boolean
+---@field is_disabled fun(name: string): boolean
 
 ---@type Pack
 Pack = Pack
