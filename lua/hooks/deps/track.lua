@@ -1,6 +1,7 @@
 local depname = require("hooks.deps.depname")
 
 --- 登记 consumer 对 dep 的引用（允许多个插件共享同一依赖）
+--- Track consumer→dep refs (shared deps allowed)
 ---@param dep any
 ---@param consumer_name string
 ---@return string?

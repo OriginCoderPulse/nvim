@@ -1,8 +1,10 @@
 --- Pack.register() 返回的链式句柄：:load({ event, time_sequence, config, ...autocmd })
+--- Chainable handle from Pack.register(): :load({ event, time_sequence, config, ...autocmd })
 local M = {}
 M.__index = M
 
 ---@param P Pack.Plugin 已登记的插件声明
+--- Registered plugin declaration
 ---@return Pack.Handle handle
 function M.new(P)
 	return setmetatable({ P = P }, M)
@@ -19,6 +21,7 @@ function M:load(opts)
 	local function run()
 		local go = function()
 			-- packadd / deps；不传 config_fn，避免 Pack.inited 挡住每次 event 的 config
+			-- packadd/deps; omit config_fn so Pack.inited does not block per-event config
 			if not Pack.load(P) then
 				return
 			end
@@ -50,6 +53,9 @@ function M:load(opts)
 				return
 			end
 			Pack.inited[P.name] = true
+			-- config 成功后再跑延迟的 :Vim 构建
+			-- Run deferred :Vim builds after successful config
+			Pack.ensure(P.name, P.build_cmd)
 		end
 		if opts.time_sequence then
 			vim.schedule(go)
@@ -66,6 +72,15 @@ function M:load(opts)
 		au.callback = function()
 			run()
 		end
+		-- augroup 含 event/pattern，避免二次 :load 清掉其它事件的 autocmd
+		-- Include event/pattern in augroup so a second :load does not clear other events
+		local ev = opts.event
+		local ev_key = type(ev) == "table" and table.concat(ev, ",") or tostring(ev)
+		local pat = opts.pattern
+		local pat_key = type(pat) == "table" and table.concat(pat, ",") or tostring(pat or "")
+		au.group = vim.api.nvim_create_augroup("PackLoad:" .. P.name .. ":" .. ev_key .. ":" .. pat_key, {
+			clear = true,
+		})
 		vim.api.nvim_create_autocmd(opts.event, au)
 	else
 		run()

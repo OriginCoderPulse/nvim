@@ -1,4 +1,5 @@
 --- 从 vim.pack spec 解析插件目录名
+--- Parse plugin directory name from vim.pack spec
 local function parse(spec)
 	if type(spec) == "table" then
 		if spec.name then

@@ -1,4 +1,5 @@
 --- 判断 vim.pack 插件目录的 git 仓库是否完整（clone 成功、HEAD 可用）
+--- Whether vim.pack plugin dir has a complete git repo (clone ok, HEAD usable)
 local cache = {}
 
 local function invalidate(path)
@@ -43,7 +44,15 @@ local function healthy(dir)
 		return cached
 	end
 
-	if vim.fn.isdirectory(dir .. "/.git") ~= 1 then
+	local git_path = dir .. "/.git"
+	local has_git = vim.fn.isdirectory(git_path) == 1 or vim.fn.filereadable(git_path) == 1
+	if not has_git then
+		-- 非 git 目录：非空视为健康，空目录视为不完整
+		-- Non-git dir: non-empty is healthy; empty dir is incomplete
+		for _ in vim.fs.dir(dir) do
+			cache[dir] = true
+			return true
+		end
 		cache[dir] = false
 		return false
 	end

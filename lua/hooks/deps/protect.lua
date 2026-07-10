@@ -29,6 +29,7 @@ local function idle_names()
 end
 
 --- 收集应保留的 pack 目录名（活跃插件 + 显式 idle + 其依赖树）
+--- Collect pack dirs to keep (active + explicit idle + their dep trees)
 ---@return table<string, boolean>
 local function protect()
 	local Pack = _G.Pack
@@ -39,6 +40,11 @@ local function protect()
 		if P.disabled then
 			if idle[name] then
 				protected[name] = true
+			end
+			if P.deps then
+				for _, dep in ipairs(P.deps) do
+					shield(dep, protected, {})
+				end
 			end
 		else
 			protected[name] = true
@@ -54,6 +60,7 @@ local function protect()
 end
 
 --- 列出仍依赖 name 的插件名
+--- List plugin names that still depend on name
 ---@param name string
 ---@return string[]
 local function users(name)

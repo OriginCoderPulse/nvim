@@ -1,4 +1,5 @@
 -- === 自定义命令 ===
+-- === Custom commands ===
 
 vim.api.nvim_create_user_command("PackUpdate", function(opts)
 	local targets = #opts.fargs > 0 and opts.fargs or nil
@@ -35,14 +36,27 @@ vim.api.nvim_create_autocmd("LspAttach", {
 	end,
 })
 
-vim.api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
+vim.api.nvim_create_autocmd({ "InsertLeave" }, {
 	pattern = "*",
 	nested = true,
 	callback = function()
-		vim.fn.execute("silent! write!")
-		local ok, conform = pcall(require, "conform")
-		if ok then
-			conform.format({ async = true, timeout_ms = 3000 })
+		-- 跳过不可写/特殊缓冲，避免 vim.pack 确认页被 silent write 立刻关掉
+		-- Skip non-writable/special buffers so vim.pack confirm page is not closed by silent write
+		if not vim.bo.modifiable or vim.bo.readonly then
+			return
 		end
+		if vim.bo.buftype ~= "" then
+			return
+		end
+		if vim.bo.filetype == "nvim-pack" then
+			return
+		end
+		if vim.api.nvim_buf_get_name(0):match("^nvim%-pack://") then
+			return
+		end
+		if not vim.bo.modified then
+			return
+		end
+		vim.fn.execute("silent! write!")
 	end,
 })

@@ -1,4 +1,5 @@
 --- 加载单个 Lua 模块（custom / 配置文件）
+--- Load a single Lua module (custom or config file)
 ---@param mod string
 ---@return boolean ok
 return function(mod)

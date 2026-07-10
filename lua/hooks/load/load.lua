@@ -1,4 +1,5 @@
 --- 懒加载插件并安全执行 setup 回调
+--- Lazy-load plugin and safely run setup callback
 local notify_once = require("hooks.util.notify_once")
 local cycle = require("hooks.deps.cycle")
 local prepare = require("hooks.load.prepare")
@@ -93,6 +94,11 @@ return function(P, config_fn)
 			return false
 		end
 		Pack.inited[P.name] = true
+		Pack.ensure(P.name, P.build_cmd)
+	elseif Pack.loaded[P.name] then
+		-- 无 config_fn 时，packadd 后再尝试延迟的 :Vim 构建
+		-- Without config_fn, retry deferred :Vim builds after packadd
+		Pack.ensure(P.name, P.build_cmd)
 	end
 
 	return true

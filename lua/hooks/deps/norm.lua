@@ -1,4 +1,5 @@
 --- 解析 deps 条目为 pack 目录名
+--- Resolve a deps entry to pack directory name
 ---@param dep any
 ---@return table
 return function(dep)

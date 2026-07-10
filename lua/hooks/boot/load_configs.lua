@@ -1,3 +1,5 @@
+local require_mod = require("hooks.boot.require_mod")
+
 ---@param dir string
 ---@param prefix string
 ---@return boolean ok
@@ -9,13 +11,13 @@ return function(dir, prefix)
 			files[#files + 1] = name
 		end
 	end
+	-- 加载顺序按文件名字母序（可用数字前缀控制优先级）
+	-- Load order is alphabetical (use numeric filename prefixes for priority)
 	table.sort(files)
 	for _, name in ipairs(files) do
 		local mod = prefix .. "." .. name:gsub("%.lua$", "")
-		local ok, err = pcall(require, mod)
-		if not ok then
+		if not require_mod(mod) then
 			failed = true
-			vim.notify("插件配置加载失败: " .. mod .. "\n" .. tostring(err), vim.log.levels.ERROR)
 		end
 	end
 	return not failed

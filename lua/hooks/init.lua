@@ -1,4 +1,5 @@
 --- 插件管理公共 API，挂载到全局 Pack
+--- Public plugin-manager API mounted on global Pack
 require("hooks.pack_types")
 
 ---@type Pack
@@ -43,5 +44,7 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	lsp = require("hooks.lsp"),
 	boot = require("hooks.boot"),
 })
+
+_G.Pack = require("hooks.util.seal_pack")(_G.Pack)
 
 return _G.Pack

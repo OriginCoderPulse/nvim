@@ -1,4 +1,5 @@
 --- 按 marker 向上查找项目根，找不到则回退到 cwd，便于单文件场景下 LSP 仍能启动。
+--- Walk up for project root by markers; fall back to cwd so LSP can start for single files.
 ---@param markers string|(string|string[])[]
 ---@return fun(bufnr: integer, on_dir: fun(dir: string))
 local function root(markers)

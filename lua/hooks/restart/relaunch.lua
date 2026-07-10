@@ -12,7 +12,17 @@ return function()
 	end
 
 	local names = table.concat(state.installed, ", ")
-	vim.notify("插件已安装: " .. names .. "，正在重启 Neovim...", vim.log.levels.INFO)
+	local choice = vim.fn.confirm(
+		"插件已安装: " .. names .. "，是否重启 Neovim？",
+		"&Yes\n&No",
+		2
+	)
+	if choice ~= 1 then
+		state.installed = {}
+		return
+	end
+
+	vim.notify("正在重启 Neovim...", vim.log.levels.INFO)
 
 	state.installed = {}
 	vim.schedule(function()

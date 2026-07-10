@@ -1,4 +1,5 @@
 --- 依赖是否仍被未禁用的插件使用
+--- Whether a dep is still used by a non-disabled plugin
 ---@param name string
 ---@return boolean
 return function(name)

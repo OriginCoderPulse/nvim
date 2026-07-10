@@ -101,13 +101,15 @@ load_dep = function(dep, consumer_name, stack)
 		return false
 	end
 
-	if not run_setup(item) then
-		return false
-	end
-
 	Pack.loaded[item.name] = true
 	notify_once.clear("dep:missing:" .. item.name)
 	notify_once.clear("dep:packadd:" .. item.name)
+
+	if not run_setup(item) then
+		Pack.loaded[item.name] = nil
+		return false
+	end
+
 	return true
 end
 

@@ -23,6 +23,7 @@ mark_tree = function(dep, locked)
 end
 
 --- 收集 lock = true 的插件及其全部依赖
+--- Collect lock=true plugins and all of their dependencies
 ---@return table<string, boolean>
 local function collect_locked()
 	local Pack = _G.Pack

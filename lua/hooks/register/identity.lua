@@ -1,4 +1,5 @@
 --- 规范化 P.name（pack 目录名）与 P.module（require 路径）
+--- Normalize P.name (pack dir) and P.module (require path)
 local function identity(P)
 	if not P then
 		return P

@@ -1,4 +1,5 @@
 --- 注册 PackChanged(install) 后重试 eager 依赖
+--- On PackChanged(install), retry eager dependencies
 return function()
 	local Pack = _G.Pack
 	Pack._listeners = Pack._listeners or {}

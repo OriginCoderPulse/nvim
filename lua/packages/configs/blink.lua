@@ -140,6 +140,7 @@ Pack.register({
 		})
 
 		-- blink 菜单只在打开时绘制一次，选中变化需手动重绘才能更新指示器/颜色
+		-- Blink menu paints once on open; redraw on selection change for indicator/colors
 		require("blink.cmp.completion.list").select_emitter:on(function()
 			local menu = require("blink.cmp.completion.windows.menu")
 			if not menu.win:is_open() or not menu.renderer or not menu.context then

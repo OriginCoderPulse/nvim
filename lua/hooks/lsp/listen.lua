@@ -6,10 +6,13 @@ return function()
 		return
 	end
 	state.listened = true
-	vim.api.nvim_create_autocmd({ "FileType", "BufEnter" }, {
+	vim.api.nvim_create_autocmd({ "FileType", "BufEnter", "BufDelete", "BufWipeout" }, {
 		group = vim.api.nvim_create_augroup("PackLsp", { clear = true }),
 		callback = function(args)
-			sync(args.buf, args.event == "FileType")
+			local force = args.event == "FileType"
+				or args.event == "BufDelete"
+				or args.event == "BufWipeout"
+			sync(args.buf, force)
 		end,
 	})
 end

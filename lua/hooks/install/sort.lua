@@ -1,8 +1,10 @@
 local cycle = require("hooks.deps.cycle")
 
 --- 按依赖拓扑排序 spec，确保 vim.pack.add 先处理依赖再处理主插件
+--- Topo-sort specs so vim.pack.add installs deps before consumers
 ---@param active_specs table
 ---@return table? sorted nil 表示检测到循环依赖或校验失败
+--- nil if cycle detected or validation failed
 return function(active_specs)
 	local Pack = _G.Pack
 	local name_to_spec = {}

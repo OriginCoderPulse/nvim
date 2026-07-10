@@ -1,4 +1,5 @@
 --- 解析插件在 packpath 上的安装路径（优先 data/site/pack）
+--- Resolve install path on packpath (prefer data/site/pack)
 ---@param name string
 ---@return string?
 return function(name)

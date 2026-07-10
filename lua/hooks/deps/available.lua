@@ -1,4 +1,5 @@
 --- 判断插件是否已完整安装（git 仓库健康即可，不依赖具体目录结构）
+--- Whether plugin is fully installed (healthy git repo; no layout assumptions)
 local healthy = require("hooks.deps.healthy")
 
 local function available(name)

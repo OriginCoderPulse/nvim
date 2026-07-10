@@ -1,9 +1,27 @@
 --- 登记 config 中的插件声明（spec / name / module / disabled / deps）
+--- Register plugin declaration from config (spec / name / module / disabled / deps)
 local cycle = require("hooks.deps.cycle")
 local notify_once = require("hooks.util.notify_once")
 local ensure_spec = require("hooks.register.ensure_spec")
 local register_dep_tree = require("hooks.register.dep_tree")
 local Handle = require("hooks.register.handle")
+
+--- 重登记前移除该消费者在所有 dep 上的引用
+--- Before re-register, remove this consumer from all dep ref lists
+---@param consumer string
+local function prune_refs(consumer)
+	local Pack = _G.Pack
+	for dep_name, refs in pairs(Pack.refs) do
+		for i = #refs, 1, -1 do
+			if refs[i] == consumer then
+				table.remove(refs, i)
+			end
+		end
+		if #refs == 0 then
+			Pack.refs[dep_name] = nil
+		end
+	end
+end
 
 ---@param P Pack.Plugin
 ---@return Pack.Handle|nil handle
@@ -39,6 +57,7 @@ return function(P)
 		return nil
 	end
 
+	prune_refs(P.name)
 	if P.deps then
 		for _, dep in ipairs(P.deps) do
 			register_dep_tree(dep, P.name, P.disabled, ensure_spec)

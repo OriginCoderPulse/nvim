@@ -40,6 +40,7 @@ local function counts_for_lsp(buf)
 end
 
 --- 汇总所有已加载 buffer 需要的 server
+--- Collect servers needed by all loaded buffers
 ---@return table<string, boolean>
 local function wanted_globally()
 	local want = {}
@@ -57,7 +58,13 @@ end
 ---@param force? boolean
 return function(buf, force)
 	buf = buf or vim.api.nvim_get_current_buf()
-	local ft = vim.bo[buf].filetype
+	if not vim.api.nvim_buf_is_valid(buf) then
+		-- 缓冲已删：仍按全局需求同步
+		-- Buffer gone: still sync from global wanted set
+		force = true
+		buf = vim.api.nvim_get_current_buf()
+	end
+	local ft = vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype or ""
 	if not force and state.last_buf == buf and state.last_ft == ft then
 		return
 	end

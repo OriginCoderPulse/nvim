@@ -1,4 +1,5 @@
 --- 同 key 只通知一次；可 clear 以便错误恢复后再次提示
+--- Notify once per key; clear to allow re-notify after recovery
 local seen = {}
 
 local M = {}

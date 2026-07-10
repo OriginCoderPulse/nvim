@@ -1,7 +1,9 @@
 --- 同步插件注册表：清理孤儿包并登记禁用列表
+--- Sync plugin registry: prune orphans and record disabled list
 ---@param active_specs? table
 ---@param disabled_specs? table
-return function(active_specs, disabled_specs)
+---@param opts? { force_prune?: boolean }
+return function(active_specs, disabled_specs, opts)
 	local Pack = _G.Pack
 	active_specs = active_specs or Pack.active
 	disabled_specs = disabled_specs or {}
@@ -39,6 +41,18 @@ return function(active_specs, disabled_specs)
 				end
 			end
 		end
+	end
+
+	-- registry 空时 protect 也为空，会把磁盘上全部包当成孤儿；默认拒绝
+	-- Empty registry ⇒ empty protect ⇒ every on-disk pack looks orphaned; refuse by default
+	local force_prune = type(opts) == "table" and opts.force_prune == true
+	if #installed_plugins > 0 and vim.tbl_isempty(Pack.registry) and not force_prune then
+		vim.notify(
+			"Pack.sync: registry 为空，已跳过孤儿清理（防止误删）。\n"
+				.. "若确认要删光未登记插件: Pack.sync(nil, nil, { force_prune = true })",
+			vim.log.levels.ERROR
+		)
+		return
 	end
 
 	local to_delete = {}

@@ -1,4 +1,5 @@
 --- 执行插件 build_cmd（函数 / :Vim 命令 / shell）
+--- Run plugin build_cmd (function / :Vim command / shell)
 local stamp = require("hooks.build.stamp")
 local retry = require("hooks.build.retry")
 
@@ -23,8 +24,16 @@ return function(name, build_cmd)
 		Pack.building[name] = false
 		if ok then
 			retry.reset(name)
-			stamp.write(dir, build_cmd)
+			local P = Pack.registry[name]
+			stamp.write(dir, build_cmd, P and P.build_id)
 			vim.notify("✅ " .. name .. " build success.", vim.log.levels.INFO)
+			vim.schedule(function()
+				vim.api.nvim_exec_autocmds("User", {
+					pattern = "PackBuildDone",
+					data = { name = name },
+				})
+				require("hooks.load.eager")()
+			end)
 		else
 			stamp.clear(dir)
 			vim.notify("❌ " .. name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
@@ -63,11 +72,29 @@ return function(name, build_cmd)
 	else
 		local final_cmd = {}
 		if type(build_cmd) == "string" then
+			if build_cmd:match("^%s*$") then
+				Pack.building[name] = false
+				vim.notify(name .. " build: 空 build_cmd 已拒绝", vim.log.levels.ERROR)
+				return
+			end
+			if build_cmd:find('["\']') then
+				Pack.building[name] = false
+				vim.notify(
+					name .. " build: shell 命令含引号时请使用 string[] 形式",
+					vim.log.levels.ERROR
+				)
+				return
+			end
 			for word in build_cmd:gmatch("%S+") do
 				table.insert(final_cmd, word)
 			end
 		else
 			final_cmd = build_cmd
+		end
+		if type(final_cmd) ~= "table" or #final_cmd == 0 or type(final_cmd[1]) ~= "string" then
+			Pack.building[name] = false
+			vim.notify(name .. " build: 无效 shell argv", vim.log.levels.ERROR)
+			return
 		end
 		vim.schedule(function()
 			vim.notify("⚙️ Building " .. name .. " (Background)...", vim.log.levels.INFO)

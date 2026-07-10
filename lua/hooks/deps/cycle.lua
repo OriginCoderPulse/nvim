@@ -1,4 +1,5 @@
 --- 依赖环检测
+--- Dependency cycle detection
 local M = {}
 
 ---@param dep any

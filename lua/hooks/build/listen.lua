@@ -1,4 +1,5 @@
 --- 监听 PackChanged，安装/更新后自动重新构建（单一 autocmd，按插件名查表）
+--- Listen PackChanged; rebuild after install/update (one autocmd, lookup by plugin name)
 local stamp = require("hooks.build.stamp")
 local build_cmds = {}
 

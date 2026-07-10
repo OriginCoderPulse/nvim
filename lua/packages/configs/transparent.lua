@@ -2,8 +2,8 @@ Pack.register({
 	spec = "https://github.com/xiyaowong/transparent.nvim",
 	module = "transparent",
 }):load({
-	event = { "ColorScheme", "User" },
-	pattern = { "*", "TransparentClear" },
+	event = { "ColorScheme" },
+	pattern = { "*" },
 	config = function(plugin)
 		plugin.setup({
 			groups = {
