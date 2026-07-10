@@ -2,19 +2,14 @@
 local M = {}
 M.__index = M
 
----@param P table 已登记的插件声明
----@return table handle
+---@param P Pack.Plugin 已登记的插件声明
+---@return Pack.Handle handle
 function M.new(P)
 	return setmetatable({ P = P }, M)
 end
 
----@param opts? {
----  event?: string|string[],
----  time_sequence?: boolean,
----  config?: fun(plugin: any),
----  [string]: any,
----}
----@return table self
+---@param opts? Pack.LoadOpts
+---@return Pack.Handle self
 function M:load(opts)
 	opts = opts or {}
 	local P = self.P

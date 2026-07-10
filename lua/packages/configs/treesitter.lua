@@ -1,24 +1,26 @@
-local ensure_installed = {
-	"json",
-	"rust",
-	"python",
-	"lua",
-	"markdown",
-	"bash",
-	"java",
-	"javascript",
-	"typescript",
-	"tsx",
-	"jsonc",
-	"json5",
-	"jsonnet",
-	"jsonnet",
-	"html",
-	"css",
-	"scss",
-	"yaml",
-	"vue",
-	"ruby",
+-- filetype -> treesitter parser
+local ft_parsers = {
+	json = "json",
+	jsonc = "jsonc",
+	json5 = "json5",
+	jsonnet = "jsonnet",
+	rust = "rust",
+	python = "python",
+	lua = "lua",
+	markdown = "markdown",
+	bash = "bash",
+	sh = "bash",
+	java = "java",
+	javascript = "javascript",
+	javascriptreact = "javascript",
+	typescript = "typescript",
+	typescriptreact = "tsx",
+	html = "html",
+	css = "css",
+	scss = "scss",
+	yaml = "yaml",
+	vue = "vue",
+	ruby = "ruby",
 }
 
 local setup_done = false
@@ -29,11 +31,12 @@ Pack.register({
 	build_cmd = ":TSUpdate",
 }):load({
 	event = "FileType",
-	pattern = ensure_installed,
+	pattern = vim.tbl_keys(ft_parsers),
 	config = function(plugin)
 		local buf = vim.api.nvim_get_current_buf()
 		local ft = vim.bo[buf].filetype
-		if ft == "" or ft == "yazi" or vim.bo[buf].buftype ~= "" then
+		local lang = ft_parsers[ft]
+		if not lang or ft == "yazi" or vim.bo[buf].buftype ~= "" then
 			return
 		end
 
@@ -43,9 +46,11 @@ Pack.register({
 			return
 		end
 
-		local lang = vim.treesitter.language.get_lang(ft) or ft
-		if not vim.tbl_contains(ensure_installed, lang) then
-			return
+		if not setup_done then
+			plugin.setup({
+				install_dir = vim.fn.stdpath("data") .. "/site",
+			})
+			setup_done = true
 		end
 
 		local no_err, is_added = pcall(vim.treesitter.language.add, lang)
@@ -53,13 +58,6 @@ Pack.register({
 			vim.notify("🌱 Installing " .. lang .. " parser...", vim.log.levels.INFO)
 			plugin.install({ lang }):wait(60000)
 			pcall(vim.treesitter.language.add, lang)
-
-			if not setup_done then
-				plugin.setup({
-					install_dir = vim.fn.stdpath("data") .. "/site",
-				})
-				setup_done = true
-			end
 		end
 
 		pcall(vim.treesitter.start, buf, lang)

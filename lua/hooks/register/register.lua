@@ -5,8 +5,8 @@ local ensure_spec = require("hooks.register.ensure_spec")
 local register_dep_tree = require("hooks.register.dep_tree")
 local Handle = require("hooks.register.handle")
 
----@param P table
----@return table|nil handle
+---@param P Pack.Plugin
+---@return Pack.Handle|nil handle
 return function(P)
 	local Pack = _G.Pack
 	if not P or not P.spec then

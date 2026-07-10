@@ -6,6 +6,11 @@ local function stamp_path(dir)
 end
 
 local function fingerprint(build_cmd)
+	if type(build_cmd) == "function" then
+		-- 函数地址每次 reload 会变；用定义位置做稳定指纹（install/update 仍会清 stamp）
+		local info = debug.getinfo(build_cmd, "S")
+		return vim.fn.sha256(string.format("fn:%s:%s", info.source or "?", info.linedefined or 0))
+	end
 	if type(build_cmd) == "table" then
 		return vim.fn.sha256(table.concat(build_cmd, "\0"))
 	end

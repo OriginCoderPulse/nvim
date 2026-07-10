@@ -16,7 +16,7 @@ local function reset(name)
 end
 
 ---@param name string
----@param build_cmd string|string[]
+---@param build_cmd string|string[]|function
 local function schedule(name, build_cmd)
 	cancel(name)
 	local next_attempt = (state.attempts[name] or 0) + 1

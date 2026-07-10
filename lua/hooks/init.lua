@@ -1,4 +1,7 @@
 --- 插件管理公共 API，挂载到全局 Pack
+require("hooks.pack_types")
+
+---@type Pack
 _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	building = {},
 	inited = {},

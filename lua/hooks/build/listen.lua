@@ -3,7 +3,7 @@ local stamp = require("hooks.build.stamp")
 local build_cmds = {}
 
 ---@param name string
----@param build_cmd string|string[]
+---@param build_cmd string|string[]|function
 return function(name, build_cmd)
 	local Pack = _G.Pack
 	name = Pack.parse(name)

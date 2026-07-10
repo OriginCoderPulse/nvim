@@ -32,6 +32,7 @@ Pack.register({
 		end
 
 		plugin.build():pwait()
+
 		plugin.setup({
 			keymap = {
 				preset = "none",

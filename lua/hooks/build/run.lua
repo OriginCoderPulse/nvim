@@ -1,9 +1,9 @@
---- 执行插件 build_cmd（shell 或 : 开头的 Vim 命令）
+--- 执行插件 build_cmd（函数 / :Vim 命令 / shell）
 local stamp = require("hooks.build.stamp")
 local retry = require("hooks.build.retry")
 
 ---@param name string
----@param build_cmd string|string[]
+---@param build_cmd string|string[]|function
 return function(name, build_cmd)
 	local Pack = _G.Pack
 	name = Pack.parse(name)
@@ -19,17 +19,6 @@ return function(name, build_cmd)
 	end
 	Pack.building[name] = true
 
-	local is_vim_cmd = false
-	local vim_cmd_str = ""
-
-	if type(build_cmd) == "string" and build_cmd:sub(1, 1) == ":" then
-		is_vim_cmd = true
-		vim_cmd_str = build_cmd:sub(2)
-	elseif type(build_cmd) == "table" and type(build_cmd[1]) == "string" and build_cmd[1]:sub(1, 1) == ":" then
-		is_vim_cmd = true
-		vim_cmd_str = build_cmd[1]:sub(2)
-	end
-
 	local function finish(ok, err_msg)
 		Pack.building[name] = false
 		if ok then
@@ -41,6 +30,27 @@ return function(name, build_cmd)
 			vim.notify("❌ " .. name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
 			retry.schedule(name, build_cmd)
 		end
+	end
+
+	if type(build_cmd) == "function" then
+		vim.schedule(function()
+			vim.notify("⚙️ Running " .. name .. " build function...", vim.log.levels.INFO)
+			pcall(vim.cmd.packadd, name)
+			local ok, err = pcall(build_cmd, name, dir)
+			finish(ok, err)
+		end)
+		return
+	end
+
+	local is_vim_cmd = false
+	local vim_cmd_str = ""
+
+	if type(build_cmd) == "string" and build_cmd:sub(1, 1) == ":" then
+		is_vim_cmd = true
+		vim_cmd_str = build_cmd:sub(2)
+	elseif type(build_cmd) == "table" and type(build_cmd[1]) == "string" and build_cmd[1]:sub(1, 1) == ":" then
+		is_vim_cmd = true
+		vim_cmd_str = build_cmd[1]:sub(2)
 	end
 
 	if is_vim_cmd then

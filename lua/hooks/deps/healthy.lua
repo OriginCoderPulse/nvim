@@ -1,6 +1,14 @@
 --- 判断 vim.pack 插件目录的 git 仓库是否完整（clone 成功、HEAD 可用）
 local cache = {}
 
+local function invalidate(path)
+	if path then
+		cache[path] = nil
+	else
+		cache = {}
+	end
+end
+
 local function listen()
 	local Pack = _G.Pack
 	if not Pack then
@@ -22,14 +30,6 @@ local function listen()
 			end
 		end,
 	})
-end
-
-local function invalidate(path)
-	if path then
-		cache[path] = nil
-	else
-		cache = {}
-	end
 end
 
 local function healthy(dir)

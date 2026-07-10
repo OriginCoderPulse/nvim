@@ -1,0 +1,220 @@
+--- Pack API 类型（供 lua-language-server 补全；无运行时逻辑）
+
+---@class Pack.SpecTable
+---@field src string 仓库 URL
+---@field name? string pack 目录名（覆盖从 URL 解析的结果）
+---@field version? string|vim.VersionRange 版本 / 分支 / tag / version range（vim.pack）
+
+---@alias Pack.Spec string|Pack.SpecTable
+
+---@class Pack.Dep
+---@field src? string 依赖仓库（与 spec 二选一）
+---@field spec? Pack.Spec 依赖规格（与 src 二选一）
+---@field name? string pack 目录名
+---@field module? string require 路径，默认 name
+---@field setup? fun(plugin: any) 依赖 packadd 后执行
+---@field build_cmd? string|string[]|fun(name: string, dir: string) 构建：shell / :Vim 命令 / 函数
+---@field deps? (string|Pack.Dep)[] 嵌套依赖
+---@field immediately? boolean true 且有 setup 时，install/eager 阶段抢先加载（默认 false）
+
+---@class Pack.Plugin
+---@field spec Pack.Spec 插件规格（必填）
+---@field module? string require 路径；默认等于解析出的 name
+---@field name? string pack 目录名；通常由 spec 自动解析
+---@field deps? (string|Pack.Dep)[] 依赖列表
+---@field disabled? boolean true 时登记但不加载
+---@field build_cmd? string|string[]|fun(name: string, dir: string) 安装后构建：shell / ":TSUpdate" / function
+
+--- nvim_create_autocmd 第一参事件名（vim.fn.getcompletion("", "event")）
+---@alias Pack.AutocmdEvent
+---| '"BufAdd"'
+---| '"BufCreate"'
+---| '"BufDelete"'
+---| '"BufEnter"'
+---| '"BufFilePost"'
+---| '"BufFilePre"'
+---| '"BufHidden"'
+---| '"BufLeave"'
+---| '"BufModifiedSet"'
+---| '"BufNew"'
+---| '"BufNewFile"'
+---| '"BufRead"'
+---| '"BufReadCmd"'
+---| '"BufReadPost"'
+---| '"BufReadPre"'
+---| '"BufUnload"'
+---| '"BufWinEnter"'
+---| '"BufWinLeave"'
+---| '"BufWipeout"'
+---| '"BufWrite"'
+---| '"BufWriteCmd"'
+---| '"BufWritePost"'
+---| '"BufWritePre"'
+---| '"ChanInfo"'
+---| '"ChanOpen"'
+---| '"CmdUndefined"'
+---| '"CmdlineChanged"'
+---| '"CmdlineEnter"'
+---| '"CmdlineLeave"'
+---| '"CmdlineLeavePre"'
+---| '"CmdwinEnter"'
+---| '"CmdwinLeave"'
+---| '"ColorScheme"'
+---| '"ColorSchemePre"'
+---| '"CompleteChanged"'
+---| '"CompleteDone"'
+---| '"CompleteDonePre"'
+---| '"CursorHold"'
+---| '"CursorHoldI"'
+---| '"CursorMoved"'
+---| '"CursorMovedC"'
+---| '"CursorMovedI"'
+---| '"DiagnosticChanged"'
+---| '"DiffUpdated"'
+---| '"DirChanged"'
+---| '"DirChangedPre"'
+---| '"EncodingChanged"'
+---| '"ExitPre"'
+---| '"FileAppendCmd"'
+---| '"FileAppendPost"'
+---| '"FileAppendPre"'
+---| '"FileChangedRO"'
+---| '"FileChangedShell"'
+---| '"FileChangedShellPost"'
+---| '"FileEncoding"'
+---| '"FileReadCmd"'
+---| '"FileReadPost"'
+---| '"FileReadPre"'
+---| '"FileType"'
+---| '"FileWriteCmd"'
+---| '"FileWritePost"'
+---| '"FileWritePre"'
+---| '"FilterReadPost"'
+---| '"FilterReadPre"'
+---| '"FilterWritePost"'
+---| '"FilterWritePre"'
+---| '"FocusGained"'
+---| '"FocusLost"'
+---| '"FuncUndefined"'
+---| '"GUIEnter"'
+---| '"GUIFailed"'
+---| '"InsertChange"'
+---| '"InsertCharPre"'
+---| '"InsertEnter"'
+---| '"InsertLeave"'
+---| '"InsertLeavePre"'
+---| '"LspAttach"'
+---| '"LspDetach"'
+---| '"LspNotify"'
+---| '"LspProgress"'
+---| '"LspRequest"'
+---| '"LspTokenUpdate"'
+---| '"MarkSet"'
+---| '"MenuPopup"'
+---| '"ModeChanged"'
+---| '"OptionSet"'
+---| '"PackChanged"'
+---| '"PackChangedPre"'
+---| '"Progress"'
+---| '"QuickFixCmdPost"'
+---| '"QuickFixCmdPre"'
+---| '"QuitPre"'
+---| '"RecordingEnter"'
+---| '"RecordingLeave"'
+---| '"RemoteReply"'
+---| '"SafeState"'
+---| '"SearchWrapped"'
+---| '"SessionLoadPost"'
+---| '"SessionLoadPre"'
+---| '"SessionWritePost"'
+---| '"ShellCmdPost"'
+---| '"ShellFilterPost"'
+---| '"Signal"'
+---| '"SourceCmd"'
+---| '"SourcePost"'
+---| '"SourcePre"'
+---| '"SpellFileMissing"'
+---| '"StdinReadPost"'
+---| '"StdinReadPre"'
+---| '"SwapExists"'
+---| '"Syntax"'
+---| '"TabClosed"'
+---| '"TabClosedPre"'
+---| '"TabEnter"'
+---| '"TabLeave"'
+---| '"TabNew"'
+---| '"TabNewEntered"'
+---| '"TermChanged"'
+---| '"TermClose"'
+---| '"TermEnter"'
+---| '"TermLeave"'
+---| '"TermOpen"'
+---| '"TermRequest"'
+---| '"TermResponse"'
+---| '"TextChanged"'
+---| '"TextChangedI"'
+---| '"TextChangedP"'
+---| '"TextChangedT"'
+---| '"TextYankPost"'
+---| '"UIEnter"'
+---| '"UILeave"'
+---| '"User"'
+---| '"VimEnter"'
+---| '"VimLeave"'
+---| '"VimLeavePre"'
+---| '"VimResized"'
+---| '"VimResume"'
+---| '"VimSuspend"'
+---| '"WinClosed"'
+---| '"WinEnter"'
+---| '"WinLeave"'
+---| '"WinNew"'
+---| '"WinNewPre"'
+---| '"WinResized"'
+---| '"WinScrolled"'
+
+--- :load() 选项。除下列 Pack 字段外，其余透传 nvim_create_autocmd 第二参。
+---@class Pack.LoadOpts
+---@field event? Pack.AutocmdEvent|Pack.AutocmdEvent[] autocmd 第一参；省略则立即加载
+---@field time_sequence? boolean true → vim.schedule 后再 Pack.load（默认 false）
+---@field config? fun(plugin: any) 加载后回调，只接收 module；无 module 时为 nil
+---@field once? boolean 透传 autocmd
+---@field pattern? string|string[] 透传 autocmd
+---@field group? integer|string 透传 autocmd
+---@field desc? string 透传 autocmd
+---@field nested? boolean 透传 autocmd
+---@field buffer? integer 透传 autocmd
+
+---@class Pack.Handle
+---@field P Pack.Plugin
+---@field load fun(self: Pack.Handle, opts?: Pack.LoadOpts): Pack.Handle
+
+---@class Pack
+---@field register fun(P: Pack.Plugin): Pack.Handle|nil
+---@field load fun(P: Pack.Plugin, config_fn?: fun(plugin: any)): boolean
+---@field identity fun(P: Pack.Plugin): Pack.Plugin
+---@field parse fun(spec: Pack.Spec|string): string
+---@field path fun(name: string): string
+---@field available fun(name: string): boolean
+---@field eager fun()
+---@field boot fun(config: string): Pack
+---@field install fun(active_specs?: table, disabled_specs?: table)
+---@field update fun(targets?: string[], opts?: table)
+---@field complete fun(arglead: string, cmdline: string, cursorpos: integer): string[]
+---@field lsp Pack.Lsp
+---@field building table<string, boolean>
+---@field inited table<string, boolean>
+---@field loaded table<string, boolean>
+---@field disabled table<string, boolean>
+---@field active table
+---@field idle table
+---@field registry table<string, Pack.Plugin>
+---@field refs table
+---@field _listeners table
+---@field _booted? boolean
+
+---@class Pack.Lsp
+---@field enable fun(servers: string[]|table)
+
+---@type Pack
+Pack = Pack

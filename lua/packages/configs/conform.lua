@@ -1,28 +1,9 @@
 Pack.register({
 	spec = "https://github.com/stevearc/conform.nvim",
 	module = "conform",
-	deps = {
-		{
-			src = "https://github.com/mason-org/mason.nvim",
-			module = "mason",
-			setup = function(plugin)
-				plugin.setup({
-					PATH = "prepend",
-					ui = {
-						width = 0.65,
-						height = 0.75,
-					},
-				})
-			end,
-			deps = {
-				"https://github.com/mason-org/mason-registry",
-			},
-		},
-	},
 }):load({
 	event = "BufReadPost",
 	once = true,
-	time_sequence = true,
 	config = function(plugin)
 		plugin.setup({
 			formatters_by_ft = {
@@ -30,6 +11,8 @@ Pack.register({
 				markdown = { "oxfmt", "cbfmt" },
 				javascript = { "oxfmt" },
 				typescript = { "oxfmt" },
+				javascriptreact = { "oxfmt" },
+				typescriptreact = { "oxfmt" },
 				json = { "oxfmt" },
 				jsonc = { "oxfmt" },
 				json5 = { "oxfmt" },
