@@ -1,16 +1,14 @@
---- 懒加载插件并安全执行 setup 回调
---- Lazy-load plugin and safely run setup callback
+--- 装载插件：依赖 → packadd（config 由 :load 句柄在 utils/var 就绪后执行）
+--- Load plugin: dependencies → packadd (config runs from :load after utils/var are ready)
 local notify_once = require("hooks.util.notify_once")
 local cycle = require("hooks.deps.cycle")
 local prepare = require("hooks.load.prepare")
 local load_dep = require("hooks.load.load_dep")
-local require_utils = require("hooks.load.require_utils")
-local call_config = require("hooks.load.call_config")
+local ensure = require("hooks.build.ensure")
 
 ---@param P table
----@param config_fn? function
 ---@return boolean ok
-return function(P, config_fn)
+return function(P)
 	local Pack = _G.Pack
 
 	if not prepare(P) then
@@ -25,7 +23,7 @@ return function(P, config_fn)
 	if Pack.disabled[P.name] then
 		notify_once(
 			"load:disabled:" .. P.name,
-			"Pack.load(" .. P.name .. "): 插件已禁用，已跳过",
+			"load(" .. P.name .. "): plugin disabled, skipped",
 			vim.log.levels.INFO
 		)
 		return false
@@ -34,89 +32,39 @@ return function(P, config_fn)
 	if not Pack.available(P.name) then
 		notify_once(
 			"load:missing:" .. P.name,
-			"Pack.load(" .. P.name .. "): 插件尚未安装，已跳过（安装完成后会自动可用）",
+			"load(" .. P.name .. "): not installed yet, skipped",
 			vim.log.levels.WARN
 		)
 		return false
 	end
 
-	if P.deps then
-		local dep_ok, dep_err = cycle.check_tree(P.name, P.deps)
+	if P.dependencies then
+		local dep_ok, dep_err = cycle.check_tree(P.name, P.dependencies)
 		if not dep_ok then
 			notify_once("load:cycle:" .. P.name, dep_err, vim.log.levels.ERROR)
 			return false
 		end
 	end
 
-	if not Pack.loaded[P.name] then
-		Pack.ensure(P.name, P.build_cmd)
-		if P.deps then
-			for _, dep in ipairs(P.deps) do
-				if not load_dep(dep, P.name, { [P.name] = true }) then
-					return false
-				end
+	if Pack.loaded[P.name] then
+		return true
+	end
+
+	ensure(P.name, P.build)
+	if P.dependencies then
+		for _, dep in ipairs(P.dependencies) do
+			if not load_dep(dep, P.name, { [P.name] = true }) then
+				return false
 			end
 		end
-		local packadd_ok = pcall(vim.cmd.packadd, P.name)
-		if not packadd_ok then
-			notify_once("load:packadd:" .. P.name, "Pack.load(" .. P.name .. "): packadd 失败", vim.log.levels.WARN)
-			return false
-		end
-		Pack.loaded[P.name] = true
-		notify_once.clear("load:missing:" .. P.name)
-		notify_once.clear("load:packadd:" .. P.name)
 	end
-
-	if config_fn then
-		if Pack.inited[P.name] then
-			return true
-		end
-		if type(P.module) ~= "string" or P.module == "" then
-			Pack.loaded[P.name] = nil
-			notify_once(
-				"load:module:" .. P.name,
-				"Pack.load(" .. P.name .. "): module 为必填字符串",
-				vim.log.levels.ERROR
-			)
-			return false
-		end
-		local mod_ok, loaded = pcall(require, P.module)
-		if not mod_ok then
-			Pack.loaded[P.name] = nil
-			notify_once(
-				"load:require:" .. P.name,
-				"Pack.load(" .. P.name .. "): require 失败\n" .. tostring(loaded),
-				vim.log.levels.ERROR
-			)
-			return false
-		end
-		local utils, utils_err = require_utils(P.utils)
-		if not utils then
-			Pack.loaded[P.name] = nil
-			notify_once(
-				"load:utils:" .. P.name,
-				"Pack.load(" .. P.name .. "): utils 失败\n" .. tostring(utils_err),
-				vim.log.levels.ERROR
-			)
-			return false
-		end
-		local setup_ok, err = call_config(config_fn, loaded, utils)
-		if not setup_ok then
-			Pack.loaded[P.name] = nil
-			notify_once(
-				"load:setup:" .. P.name,
-				"Pack.load(" .. P.name .. "): setup 失败\n" .. tostring(err),
-				vim.log.levels.ERROR
-			)
-			return false
-		end
-		Pack.inited[P.name] = true
-		Pack.ensure(P.name, P.build_cmd)
-	elseif Pack.loaded[P.name] then
-		-- 无 config_fn 时，packadd 后再尝试延迟的 :Vim 构建
-		-- Without config_fn, retry deferred :Vim builds after packadd
-		Pack.ensure(P.name, P.build_cmd)
+	local packadd_ok = pcall(vim.cmd.packadd, P.name)
+	if not packadd_ok then
+		notify_once("load:packadd:" .. P.name, "load(" .. P.name .. "): packadd failed", vim.log.levels.WARN)
+		return false
 	end
-
+	Pack.loaded[P.name] = true
+	notify_once.clear("load:missing:" .. P.name)
+	notify_once.clear("load:packadd:" .. P.name)
 	return true
 end

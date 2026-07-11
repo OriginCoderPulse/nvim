@@ -7,7 +7,7 @@ Pack.register({
 }):load({
 	event = "UIEnter",
 	once = true,
-	time_sequence = true,
+	defer = true,
 	config = function(plugin)
 		plugin.mock_nvim_web_devicons()
 		plugin.setup({

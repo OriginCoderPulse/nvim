@@ -3,13 +3,15 @@
 ---
 --- 用法 / Usage:
 ---   Pack.register("https://github.com/user/plug", { module = "plug" })
----   Pack.register({ "https://...", module = "plug", utils = { menu = "plug.menu" } })
+---   Pack.register({ "https://...", module = "plug" }):load({ utils = { menu = "plug.menu" }, var = {...}, config = fn })
 ---   Pack.register({ spec = { src = "...", name = "..." }, module = "..." })
 local cycle = require("hooks.deps.cycle")
 local notify_once = require("hooks.util.notify_once")
 local ensure_spec = require("hooks.register.ensure_spec")
 local register_dep_tree = require("hooks.register.dep_tree")
 local Handle = require("hooks.register.handle")
+local identity = require("hooks.register.identity")
+local listen = require("hooks.build.listen")
 
 --- 重登记前移除该消费者在所有 dep 上的引用
 --- Before re-register, remove this consumer from all dep ref lists
@@ -99,7 +101,7 @@ return function(src_or_plugin, opts)
 		return nil
 	end
 
-	local id_ok, id_err = pcall(Pack.identity, P)
+	local id_ok, id_err = pcall(identity, P)
 	if not id_ok or not P.name then
 		notify_once(
 			"register:identity",
@@ -119,34 +121,20 @@ return function(src_or_plugin, opts)
 	end
 
 	if P.utils ~= nil then
-		if type(P.utils) ~= "table" then
-			notify_once(
-				"register:utils",
-				"Pack.register(" .. P.name .. "): utils 必须是 table（name → require 路径）",
-				vim.log.levels.ERROR
-			)
-			return nil
-		end
-		for key, path in pairs(P.utils) do
-			if type(key) ~= "string" or not key:match("^[%a_][%w_]*$") or type(path) ~= "string" or path == "" then
-				notify_once(
-					"register:utils",
-					"Pack.register(" .. P.name .. "): utils 键须为合法标识符，值为非空 require 路径",
-					vim.log.levels.ERROR
-				)
-				return nil
-			end
-			-- 禁止覆盖常用全局，避免 setfenv 后 vim/Pack 等失效
-			-- Forbid shadowing common globals after setfenv
-			if key == "vim" or key == "Pack" or key == "_G" or key == "require" then
-				notify_once(
-					"register:utils_reserved",
-					"Pack.register(" .. P.name .. "): utils 键 `" .. key .. "` 为保留名",
-					vim.log.levels.ERROR
-				)
-				return nil
-			end
-		end
+		notify_once(
+			"register:utils",
+			"Pack.register(" .. P.name .. "): utils moved to :load({ utils = ... })",
+			vim.log.levels.ERROR
+		)
+		return nil
+	end
+	if P.var ~= nil then
+		notify_once(
+			"register:var",
+			"Pack.register(" .. P.name .. "): var belongs on :load({ var = ... })",
+			vim.log.levels.ERROR
+		)
+		return nil
 	end
 
 	P.disabled = P.disabled == true
@@ -158,27 +146,26 @@ return function(src_or_plugin, opts)
 		end
 		-- pairs 不会带上显式 nil；省略的字段需清掉，避免残留
 		-- pairs skips explicit nil; clear omitted fields to avoid stale data
-		if rawget(P, "utils") == nil then
-			existing.utils = nil
+		if rawget(P, "dependencies") == nil then
+			existing.dependencies = nil
 		end
-		if rawget(P, "deps") == nil then
-			existing.deps = nil
+		if rawget(P, "build") == nil then
+			existing.build = nil
 		end
-		if rawget(P, "build_cmd") == nil then
-			existing.build_cmd = nil
-		end
+		existing.utils = nil
+		existing.var = nil
 		P = existing
 	end
 
-	local cycle_ok, cycle_err = cycle.check_tree(P.name, P.deps)
+	local cycle_ok, cycle_err = cycle.check_tree(P.name, P.dependencies)
 	if not cycle_ok then
 		notify_once("register:cycle:" .. (P.name or "?"), cycle_err, vim.log.levels.ERROR)
 		return nil
 	end
 
 	prune_refs(P.name)
-	if P.deps then
-		for _, dep in ipairs(P.deps) do
+	if P.dependencies then
+		for _, dep in ipairs(P.dependencies) do
 			register_dep_tree(dep, P.name, P.disabled, ensure_spec)
 		end
 	end
@@ -194,9 +181,9 @@ return function(src_or_plugin, opts)
 	Pack.registry[P.name] = P
 	P._registered = true
 
-	if P.build_cmd then
-		Pack.listen(P.name, P.build_cmd)
-	end
+	-- 始终同步 cmds：去掉 build 时必须 cmds.set(nil)
+	-- Always sync cmds: clearing build must cmds.set(nil)
+	listen(P.name, P.build)
 
 	return Handle.new(P)
 end

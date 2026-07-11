@@ -1,11 +1,15 @@
---- 同步注册表、安装插件、必要时自动重启
---- Sync registry, install plugins, relaunch if needed
+--- 同步注册表、安装插件、统一构建，全部完成后再询问重启
+--- Sync registry, install plugins, batch-build, then ask to restart
 ---@param active_specs? table
 ---@param disabled_specs? table
 return function(active_specs, disabled_specs)
 	local Pack = _G.Pack
 	local sort = require("hooks.install.sort")
-	local eager = require("hooks.load.eager")
+	local sync = require("hooks.install.sync")
+	local repair = require("hooks.install.repair")
+	local batch = require("hooks.build.batch")
+	local relaunch = require("hooks.restart").relaunch
+	local restart_state = require("hooks.restart.state")
 	active_specs = active_specs or Pack.active
 	disabled_specs = disabled_specs or Pack.idle
 
@@ -29,41 +33,50 @@ return function(active_specs, disabled_specs)
 		return vim.fn.sha256(table.concat(keys, "\0"))
 	end
 
-	local function all_available()
+	--- 快路径：只查目录是否存在，不做 git healthy（省 ~100ms/启动）
+	--- Fast path: directory presence only, no git healthy (~100ms/boot saved)
+	local function dirs_present()
 		for name in pairs(Pack.registry) do
-			if not Pack.available(name) then
+			if not Pack.path(name) then
 				return false
 			end
 		end
 		for _, spec in ipairs(active_specs) do
-			if not Pack.available(Pack.parse(spec)) then
+			if not Pack.path(Pack.parse(spec)) then
 				return false
 			end
 		end
 		return true
 	end
 
+	local function after_install()
+		batch(function(result)
+			for _, name in ipairs(result.ok_names) do
+				restart_state.built[#restart_state.built + 1] = name
+			end
+			relaunch()
+		end)
+	end
+
 	local fp = fingerprint()
 	local stamp_lines = vim.fn.filereadable(stamp_path) == 1 and vim.fn.readfile(stamp_path) or {}
 	local sorted = sort(active_specs)
 	if not sorted then
-		vim.notify("install 已中止: 依赖排序失败", vim.log.levels.ERROR)
+		vim.notify("install aborted: dependency sort failed", vim.log.levels.ERROR)
 		return
 	end
 
-	-- 指纹命中：仍须 vim.pack.add 登记本会话 active；只跳过 sync/repair
-	-- Stamp hit: still vim.pack.add so session marks plugins active; skip sync/repair only
-	if stamp_lines[1] == fp and all_available() then
+	-- 指纹命中 + 目录在：跳过 git 检查与 sync/repair
+	-- Stamp hit + dirs present: skip git checks and sync/repair
+	if stamp_lines[1] == fp and dirs_present() then
 		vim.pack.add(sorted, { confirm = false, load = false })
-		eager()
-		Pack.relaunch()
+		after_install()
 		return
 	end
 
-	Pack.sync(active_specs, disabled_specs)
-	Pack.repair()
+	sync(active_specs, disabled_specs)
+	repair()
 	vim.pack.add(sorted, { confirm = false, load = false })
-	eager()
-	Pack.relaunch()
 	vim.fn.writefile({ fp }, stamp_path)
+	after_install()
 end

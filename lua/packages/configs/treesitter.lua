@@ -28,6 +28,7 @@ local setup_done = false
 Pack.register({
 	"https://github.com/nvim-treesitter/nvim-treesitter",
 	module = "nvim-treesitter",
+	build = ":TSUpdate",
 }):load({
 	event = "FileType",
 	pattern = vim.tbl_keys(ft_parsers),

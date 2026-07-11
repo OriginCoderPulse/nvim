@@ -1,32 +1,35 @@
 Pack.register({
 	"https://github.com/nvim-lualine/lualine.nvim",
 	module = "lualine",
-	deps = {
+	dependencies = {
 		"https://github.com/pnx/lualine-lsp-status",
-	},
-	utils = {
-		themes_auto = "lualine.themes.auto",
 	},
 }):load({
 	event = "BufReadPost",
 	once = true,
+	utils = {
+		themes_auto = "lualine.themes.auto",
+	},
+	var = {
+		transparent_theme = function()
+			local base = themes_auto
+			for _, mode in pairs(base) do
+				if type(mode) == "table" then
+					for _, section in pairs(mode) do
+						if type(section) == "table" then
+							section.bg = "NONE"
+						end
+					end
+				end
+			end
+			return base
+		end,
+	},
 	config = function(plugin)
 		plugin.setup({
 			options = {
 				icons_enabled = true,
-				theme = function()
-					local base = themes_auto
-					for _, mode in pairs(base) do
-						if type(mode) == "table" then
-							for _, section in pairs(mode) do
-								if type(section) == "table" then
-									section.bg = "NONE"
-								end
-							end
-						end
-					end
-					return base
-				end,
+				theme = transparent_theme,
 				component_separators = { left = " ", right = " " },
 				section_separators = { left = " ", right = " " },
 				always_divide_middle = true,

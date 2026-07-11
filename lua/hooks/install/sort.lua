@@ -1,7 +1,8 @@
 local cycle = require("hooks.deps.cycle")
+local walk = require("hooks.deps.walk")
 
 --- 按依赖拓扑排序 spec，确保 vim.pack.add 先处理依赖再处理主插件
---- Topo-sort specs so vim.pack.add installs deps before consumers
+--- Topo-sort specs so vim.pack.add installs dependencies before consumers
 ---@param active_specs table
 ---@return table? sorted nil 表示检测到循环依赖或校验失败
 --- nil if cycle detected or validation failed
@@ -15,8 +16,8 @@ return function(active_specs)
 	for _, spec in ipairs(active_specs) do
 		local name = Pack.parse(spec)
 		local P = Pack.registry[name]
-		if P and P.deps then
-			local ok, err = cycle.check_tree(name, P.deps)
+		if P and P.dependencies then
+			local ok, err = cycle.check_tree(name, P.dependencies)
 			if not ok then
 				vim.notify("install 排序: " .. tostring(err), vim.log.levels.ERROR)
 				return nil
@@ -43,9 +44,9 @@ return function(active_specs)
 		visiting[name] = true
 
 		local P = Pack.registry[name]
-		if P and P.deps then
-			for _, dep in ipairs(P.deps) do
-				if Pack.walk(dep, visit) == false then
+		if P and P.dependencies then
+			for _, dep in ipairs(P.dependencies) do
+				if walk(dep, visit) == false then
 					visiting[name] = nil
 					vim.notify("install 排序: 依赖遍历失败 (" .. name .. ")", vim.log.levels.ERROR)
 					return false

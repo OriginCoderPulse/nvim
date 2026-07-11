@@ -1,11 +1,23 @@
 Pack.register({
 	"https://github.com/folke/snacks.nvim",
 	module = "snacks",
+}):load({
+	event = "VimEnter",
 	utils = {
 		lsp_config = "snacks.picker.source.lsp.config",
 	},
-}):load({
-	event = "VimEnter",
+	var = {
+		lsp_config_format = function(item, picker)
+			if not item.attached_buf then
+				item = vim.tbl_extend("force", {}, item, {
+					attached = false,
+					enabled = false,
+				})
+			end
+
+			return lsp_config.format(item, picker)
+		end,
+	},
 	config = function(plugin)
 		plugin.setup({
 			dashboard = {
@@ -118,18 +130,21 @@ Pack.register({
 									},
 								},
 							},
+							pack_restart = {
+								layout = {
+									preset = "select",
+									layout = {
+										width = 0.4,
+										height = 0.3,
+										min_width = 40,
+										border = "rounded",
+									},
+								},
+							},
 						},
 					},
 					lsp_config = {
-						format = function(item, picker)
-							if not item.attached_buf then
-								item = vim.tbl_extend("force", {}, item, {
-									attached = false,
-									enabled = false,
-								})
-							end
-							return lsp_config.format(item, picker)
-						end,
+						format = lsp_config_format,
 					},
 				},
 				formatters = {

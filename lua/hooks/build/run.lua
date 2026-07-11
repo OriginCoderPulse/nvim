@@ -1,21 +1,39 @@
---- 执行插件 build_cmd（函数 / :Vim 命令 / shell）
---- Run plugin build_cmd (function / :Vim command / shell)
+--- 执行插件 build（函数 / :Vim 命令 / shell）
+--- Run plugin build (function / :Vim command / shell)
+---
+--- opts.quiet: reserved (batch passes it; per-plugin start/success are always silent)
+--- opts.no_retry: do not auto-retry on failure
 local stamp = require("hooks.build.stamp")
 local retry = require("hooks.build.retry")
+local failed = require("hooks.build.failed")
 
 ---@param name string
 ---@param build_cmd string|string[]|function
-return function(name, build_cmd)
+---@param on_finish? fun(ok: boolean, err?: any)
+---@param opts? { quiet?: boolean, no_retry?: boolean }
+return function(name, build_cmd, on_finish, opts)
+	opts = opts or {}
+	local no_retry = opts.no_retry == true or on_finish ~= nil
+
 	local Pack = _G.Pack
 	name = Pack.parse(name)
 	if Pack.disabled[name] or not build_cmd then
+		if on_finish then
+			on_finish(false, "disabled or missing build")
+		end
 		return
 	end
 	if Pack.building[name] or retry.pending(name) then
+		if on_finish then
+			on_finish(false, "already building")
+		end
 		return
 	end
 	local dir = Pack.path(name)
 	if not dir then
+		if on_finish then
+			on_finish(false, "missing path")
+		end
 		return
 	end
 	Pack.building[name] = true
@@ -27,25 +45,33 @@ return function(name, build_cmd)
 			Pack.building[name] = false
 			if ok then
 				retry.reset(name)
+				failed.remove(name)
 				local P = Pack.registry[name]
 				stamp.write(dir, build_cmd, P and P.build_id)
-				vim.notify("✅ " .. name .. " build success.", vim.log.levels.INFO)
+				-- Per-plugin success is silent; batch reports overall "Build success"
 				vim.api.nvim_exec_autocmds("User", {
 					pattern = "PackBuildDone",
 					data = { name = name },
 				})
-				require("hooks.load.eager")()
+				if on_finish then
+					on_finish(true)
+				end
 			else
+				-- On failure: no stamp (clear if any); next boot still rebuilds via missing stamp
 				stamp.clear(dir)
-				vim.notify("❌ " .. name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
-				retry.schedule(name, build_cmd)
+				failed.add(name)
+				vim.notify(name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
+				if on_finish then
+					on_finish(false, err_msg)
+				elseif not no_retry then
+					retry.schedule(name, build_cmd)
+				end
 			end
 		end)
 	end
 
 	if type(build_cmd) == "function" then
 		vim.schedule(function()
-			vim.notify("⚙️ Running " .. name .. " build function...", vim.log.levels.INFO)
 			pcall(vim.cmd.packadd, name)
 			local ok, err = pcall(build_cmd, name, dir)
 			finish(ok, err)
@@ -66,7 +92,6 @@ return function(name, build_cmd)
 
 	if is_vim_cmd then
 		vim.schedule(function()
-			vim.notify("⚙️ Running " .. name .. " setup command...", vim.log.levels.INFO)
 			pcall(vim.cmd.packadd, name)
 			local ok, err = pcall(vim.cmd, vim_cmd_str)
 			finish(ok, err)
@@ -76,15 +101,25 @@ return function(name, build_cmd)
 		if type(build_cmd) == "string" then
 			if build_cmd:match("^%s*$") then
 				Pack.building[name] = false
-				vim.notify(name .. " build: 空 build_cmd 已拒绝", vim.log.levels.ERROR)
+				stamp.clear(dir)
+				failed.add(name)
+				vim.notify(name .. " build failed: empty build rejected", vim.log.levels.ERROR)
+				if on_finish then
+					on_finish(false, "empty build")
+				end
 				return
 			end
 			if build_cmd:find('["\']') then
 				Pack.building[name] = false
+				stamp.clear(dir)
+				failed.add(name)
 				vim.notify(
-					name .. " build: shell 命令含引号时请使用 string[] 形式",
+					name .. " build failed: quoted shell strings must use string[] form",
 					vim.log.levels.ERROR
 				)
+				if on_finish then
+					on_finish(false, "quoted shell string")
+				end
 				return
 			end
 			for word in build_cmd:gmatch("%S+") do
@@ -95,12 +130,14 @@ return function(name, build_cmd)
 		end
 		if type(final_cmd) ~= "table" or #final_cmd == 0 or type(final_cmd[1]) ~= "string" then
 			Pack.building[name] = false
-			vim.notify(name .. " build: 无效 shell argv", vim.log.levels.ERROR)
+			stamp.clear(dir)
+			failed.add(name)
+			vim.notify(name .. " build failed: invalid shell argv", vim.log.levels.ERROR)
+			if on_finish then
+				on_finish(false, "invalid argv")
+			end
 			return
 		end
-		vim.schedule(function()
-			vim.notify("⚙️ Building " .. name .. " (Background)...", vim.log.levels.INFO)
-		end)
 		vim.system(final_cmd, { cwd = dir }, function(out)
 			if out.code == 0 then
 				finish(true)

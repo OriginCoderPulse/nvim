@@ -1,7 +1,7 @@
 local filter_targets = require("hooks.update.filter")
 
 --- 过滤 lock = true 的插件及其依赖后调用 vim.pack.update
---- Call vim.pack.update after filtering lock=true plugins and their deps
+--- Call vim.pack.update after filtering lock=true plugins and their dependencies
 ---@param targets? string[]
 ---@param opts? table
 return function(targets, opts)

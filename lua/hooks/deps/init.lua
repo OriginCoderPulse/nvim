@@ -1,3 +1,5 @@
+--- deps 子模块聚合（供内部 require；不再整包挂到 Pack）
+--- deps submodule barrel (internal require; not mounted on Pack wholesale)
 return {
 	norm = require("hooks.deps.norm"),
 	depname = require("hooks.deps.depname"),

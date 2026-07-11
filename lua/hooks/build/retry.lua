@@ -23,20 +23,21 @@ local function schedule(name, build_cmd)
 	if next_attempt > state.max_attempts then
 		state.attempts[name] = nil
 		vim.notify(
-			"❌ " .. name .. " build 重试已达上限 (" .. state.max_attempts .. " 次)，请检查 build_cmd",
+			name .. " build failed: retry limit reached (" .. state.max_attempts .. ")",
 			vim.log.levels.ERROR
 		)
 		return
 	end
 	state.attempts[name] = next_attempt
 	vim.notify(
-		"⚠️ "
-			.. name
-			.. " build 失败，"
-			.. (state.delay_ms / 1000)
-			.. "s 后第 "
+		name
+			.. " build failed, retry "
 			.. next_attempt
-			.. " 次重试...",
+			.. "/"
+			.. state.max_attempts
+			.. " in "
+			.. (state.delay_ms / 1000)
+			.. "s...",
 		vim.log.levels.WARN
 	)
 	state.timers[name] = vim.defer_fn(function()

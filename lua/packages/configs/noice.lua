@@ -1,13 +1,13 @@
 Pack.register({
 	"https://github.com/folke/noice.nvim",
-	deps = {
+	dependencies = {
 		"https://github.com/MunifTanjim/nui.nvim",
 	},
 	module = "noice",
 }):load({
 	event = "UIEnter",
 	once = true,
-	time_sequence = true,
+	defer = true,
 	config = function(plugin)
 		plugin.setup({
 			cmdline = {

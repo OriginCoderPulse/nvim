@@ -1,11 +1,13 @@
---- 解析 deps 条目为规范化依赖表
---- Resolve a deps entry into a normalized dep table
+--- 解析依赖注释：utils 仅注入该依赖自身 config（不与主插件 :load utils/var 合并）
+--- Dep note: utils inject into this dep config only (not merged with main :load utils/var)
 ---
 --- 支持 / Supports:
 ---   "https://..."                          -- 纯 URL（仅 packadd，无 module）
----   { "https://...", module = "...", setup = fn }  -- 有 setup 时 module 必填
+---   { "https://...", module = "...", config = fn, utils = { x = "mod.x" } }
 ---   { src = "https://...", ... }           -- 显式 src
 ---   { spec = { src = "..." }, ... }        -- spec 仅 table
+---   utils：依赖本地额外 require，仅注入该依赖 config
+---   utils: dep-local extra requires, injected into this dep config only
 ---@param dep any
 ---@return table
 return function(dep)
@@ -20,6 +22,13 @@ return function(dep)
 
 	if type(dep) ~= "table" then
 		error("dep must be string or table: " .. vim.inspect(dep))
+	end
+
+	if dep.setup ~= nil then
+		error("dep.setup 已更名为 config: " .. vim.inspect(dep))
+	end
+	if dep.immediately ~= nil then
+		error("dep.immediately 已移除（依赖随主插件 load）: " .. vim.inspect(dep))
 	end
 
 	-- [1] 字符串 → src
@@ -45,21 +54,39 @@ return function(dep)
 
 	local name = dep.name and Pack.parse(dep.name) or Pack.parse(spec)
 	local module = dep.module
-	if dep.setup ~= nil then
+	if dep.config ~= nil then
 		if type(module) ~= "string" or module == "" then
-			error("dep with setup requires module (string): " .. name)
+			error("dep with config requires module (string): " .. name)
 		end
 	elseif module ~= nil and (type(module) ~= "string" or module == "") then
 		error("dep.module must be a non-empty string: " .. name)
+	end
+
+	local utils = dep.utils
+	if utils ~= nil then
+		if dep.config == nil then
+			error("dep with utils requires config: " .. name)
+		end
+		if type(utils) ~= "table" then
+			error("dep.utils must be a table (name → require path): " .. name)
+		end
+		for key, path in pairs(utils) do
+			if type(key) ~= "string" or not key:match("^[%a_][%w_]*$") or type(path) ~= "string" or path == "" then
+				error("dep.utils keys must be identifiers, values non-empty require paths: " .. name)
+			end
+			if key == "vim" or key == "Pack" or key == "_G" or key == "require" then
+				error("dep.utils key `" .. key .. "` is reserved: " .. name)
+			end
+		end
 	end
 
 	return {
 		spec = spec,
 		name = name,
 		module = module,
-		setup = dep.setup,
-		build_cmd = dep.build_cmd,
-		deps = dep.deps,
-		immediately = dep.immediately == true,
+		config = dep.config,
+		utils = utils,
+		build = dep.build,
+		dependencies = dep.dependencies,
 	}
 end

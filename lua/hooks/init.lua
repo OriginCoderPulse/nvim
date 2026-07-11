@@ -1,5 +1,8 @@
 --- 插件管理公共 API，挂载到全局 Pack
 --- Public plugin-manager API mounted on global Pack
+---
+--- 配置侧：register / boot / lsp / root（更新走 :PackUpdate）
+--- Configs: register / boot / lsp / root (updates via :PackUpdate)
 require("hooks.pack_types")
 
 ---@type Pack
@@ -8,6 +11,7 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	inited = {},
 	loaded = {},
 	disabled = {},
+	var_used = {},
 	active = {},
 	idle = {},
 	registry = {},
@@ -17,32 +21,11 @@ _G.Pack = vim.tbl_extend("force", _G.Pack or {
 	parse = require("hooks.deps.parse"),
 	path = require("hooks.deps.path"),
 	available = require("hooks.deps.available"),
-	norm = require("hooks.deps").norm,
-	needed = require("hooks.deps").needed,
-	protect = require("hooks.deps").protect,
-	users = require("hooks.deps").users,
-	depname = require("hooks.deps").depname,
-	walk = require("hooks.deps").walk,
-	track = require("hooks.deps").track,
+	norm = require("hooks.deps.norm"),
 	register = require("hooks.register"),
-	identity = require("hooks.register.identity"),
-	load = require("hooks.load").load,
-	eager = require("hooks.load").eager,
-	configured = require("hooks.load").configured,
-	load_listen = require("hooks.load.listen"),
-	build = require("hooks.build"),
-	ensure = require("hooks.build.ensure"),
-	listen = require("hooks.build.listen"),
-	sync = require("hooks.install.sync"),
-	repair = require("hooks.install.repair"),
-	install = require("hooks.install"),
-	update = require("hooks.update").update,
-	complete = require("hooks.update.complete"),
-	restart = require("hooks.restart").restart,
-	relaunch = require("hooks.restart").relaunch,
-	root = require("hooks.util.root"),
-	lsp = require("hooks.lsp"),
 	boot = require("hooks.boot"),
+	lsp = require("hooks.lsp"),
+	root = require("hooks.util.root"),
 })
 
 _G.Pack = require("hooks.util.seal_pack")(_G.Pack)

@@ -1,10 +1,18 @@
---- Pack.register() 返回的链式句柄：:load({ event, time_sequence, config, ...autocmd })
---- Chainable handle from Pack.register(): :load({ event, time_sequence, config, ...autocmd })
+--- Pack.register() 返回的链式句柄：:load({ event, defer, utils, var, config, ...autocmd })
+--- Chainable handle from Pack.register(): :load({ event, defer, utils, var, config, ...autocmd })
 local M = {}
 M.__index = M
 
----@param P Pack.Plugin 已登记的插件声明
---- Registered plugin declaration
+local pack_load = require("hooks.load.load")
+local config_deps = require("hooks.load.config_deps")
+local ensure = require("hooks.build.ensure")
+local require_utils = require("hooks.load.require_utils")
+local build_env = require("hooks.load.build_env")
+local call_config = require("hooks.load.call_config")
+local run_var_use = require("hooks.load.run_var_use")
+local notify_once = require("hooks.util.notify_once")
+
+---@param P Pack.Plugin
 ---@return Pack.Handle handle
 function M.new(P)
 	return setmetatable({ P = P }, M)
@@ -16,57 +24,92 @@ function M:load(opts)
 	opts = opts or {}
 	local P = self.P
 	local Pack = _G.Pack
-	local notify_once = require("hooks.util.notify_once")
-
-	local require_utils = require("hooks.load.require_utils")
-	local call_config = require("hooks.load.call_config")
 
 	local function run()
 		local go = function()
-			-- packadd / deps；不传 config_fn，避免 Pack.inited 挡住每次 event 的 config
-			-- packadd/deps; omit config_fn so Pack.inited does not block per-event config
-			if not Pack.load(P) then
+			-- 已 init：跳过 config / var_use（与依赖 config_deps 守卫对齐）
+			-- Already inited: skip config / var_use (align with dep config_deps guard)
+			if Pack.inited[P.name] then
+				if not Pack.loaded[P.name] then
+					pack_load(P)
+				end
 				return
 			end
+
+			if not pack_load(P) then
+				return
+			end
+
+			local utils, utils_err = require_utils(opts.utils)
+			if not utils then
+				Pack.loaded[P.name] = nil
+				notify_once(
+					"handle:utils:" .. P.name,
+					"Pack.handle:load(" .. P.name .. "): utils failed\n" .. tostring(utils_err),
+					vim.log.levels.ERROR
+				)
+				return
+			end
+
+			local _, config_env, use_list, env_err = build_env.build(utils, opts.var)
+			if not config_env then
+				Pack.loaded[P.name] = nil
+				notify_once(
+					"handle:var:" .. P.name,
+					"Pack.handle:load(" .. P.name .. "): var/utils env failed\n" .. tostring(env_err),
+					vim.log.levels.ERROR
+				)
+				return
+			end
+
+			if P.dependencies and not config_deps.tree(P.dependencies) then
+				Pack.loaded[P.name] = nil
+				return
+			end
+
 			if not opts.config then
+				if not run_var_use(P.name, use_list) then
+					Pack.loaded[P.name] = nil
+					return
+				end
+				Pack.inited[P.name] = true
+				ensure(P.name, P.build)
 				return
 			end
+
 			local ok, loaded = pcall(require, P.module)
 			if not ok then
 				Pack.loaded[P.name] = nil
 				notify_once(
 					"handle:require:" .. P.name,
-					"Pack.handle:load(" .. P.name .. "): require 失败\n" .. tostring(loaded),
+					"Pack.handle:load(" .. P.name .. "): require failed\n" .. tostring(loaded),
 					vim.log.levels.ERROR
 				)
 				return
 			end
-			local utils, utils_err = require_utils(P.utils)
-			if not utils then
-				Pack.loaded[P.name] = nil
-				notify_once(
-					"handle:utils:" .. P.name,
-					"Pack.handle:load(" .. P.name .. "): utils 失败\n" .. tostring(utils_err),
-					vim.log.levels.ERROR
-				)
-				return
-			end
-			local setup_ok, err = call_config(opts.config, loaded, utils)
+
+			local setup_ok, err = call_config(opts.config, loaded, config_env)
 			if not setup_ok then
 				Pack.loaded[P.name] = nil
 				notify_once(
-					"handle:setup:" .. P.name,
-					"Pack.handle:load(" .. P.name .. "): config 失败\n" .. tostring(err),
+					"handle:config:" .. P.name,
+					"Pack.handle:load(" .. P.name .. "): config failed\n" .. tostring(err),
 					vim.log.levels.ERROR
 				)
 				return
 			end
+
+			if not run_var_use(P.name, use_list) then
+				Pack.loaded[P.name] = nil
+				return
+			end
+
+			-- 全部成功后再标记 inited（与 var_used 一致）
+			-- Mark inited only after full success (aligned with var_used)
 			Pack.inited[P.name] = true
-			-- config 成功后再跑延迟的 :Vim 构建
-			-- Run deferred :Vim builds after successful config
-			Pack.ensure(P.name, P.build_cmd)
+			ensure(P.name, P.build)
 		end
-		if opts.time_sequence then
+		if opts.defer then
 			vim.schedule(go)
 		else
 			go()
@@ -76,13 +119,13 @@ function M:load(opts)
 	if opts.event then
 		local au = vim.tbl_deep_extend("force", {}, opts)
 		au.event = nil
-		au.time_sequence = nil
+		au.defer = nil
 		au.config = nil
+		au.utils = nil
+		au.var = nil
 		au.callback = function()
 			run()
 		end
-		-- augroup 含 event/pattern，避免二次 :load 清掉其它事件的 autocmd
-		-- Include event/pattern in augroup so a second :load does not clear other events
 		local ev = opts.event
 		local ev_key = type(ev) == "table" and table.concat(ev, ",") or tostring(ev)
 		local pat = opts.pattern

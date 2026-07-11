@@ -1,5 +1,5 @@
---- build_cmd 指纹 stamp：cmd 变更后自动失效
---- build_cmd fingerprint stamp: invalidate when cmd changes
+--- build 指纹 stamp：命令变更后自动失效
+--- build fingerprint stamp: invalidate when command changes
 local M = {}
 
 local function stamp_path(dir)

@@ -26,8 +26,8 @@ walk = function(dep, fn, stack)
 		stack[name] = nil
 		return false
 	end
-	if item.deps then
-		for _, nested in ipairs(item.deps) do
+	if item.dependencies then
+		for _, nested in ipairs(item.dependencies) do
 			if walk(nested, fn, stack) == false then
 				stack[name] = nil
 				return false

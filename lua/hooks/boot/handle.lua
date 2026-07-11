@@ -12,7 +12,7 @@ local resolve_config = require("hooks.boot.resolve")
 local load_configs = require("hooks.boot.load_configs")
 local require_mod = require("hooks.boot.require_mod")
 local notify_once = require("hooks.util.notify_once")
-local install = require("hooks.install")
+local restart = require("hooks.restart").restart
 
 --- headless 立即 schedule；否则等 UIEnter/VimEnter 一次
 --- Headless: schedule now; else wait once for UIEnter/VimEnter
@@ -105,14 +105,15 @@ function M:run()
 	-- hooks 启动编排
 	-- hooks boot orchestration
 	notify_once.clear()
-	Pack.restart()
+	restart()
 	local configs_ok = load_configs(dir, prefix)
 	if not configs_ok then
 		vim.notify("插件配置加载失败，继续启动...", vim.log.levels.WARN)
 	end
-	Pack.load_listen()
 	Pack._booted = true
-	schedule_install(install)
+	schedule_install(function()
+		require("hooks.install")()
+	end)
 
 	-- custom 默认最后加载
 	-- remaining custom modules load last

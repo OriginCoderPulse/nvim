@@ -20,16 +20,16 @@
 --- Dependency spec table (mutually exclusive with [1] / src)
 ---@field name? string pack 目录名
 --- Pack directory name
----@field module? string 有 setup 时必填的 require 路径（不再从 name 猜测）
---- Require path; required when setup is set (not inferred from name)
----@field setup? fun(plugin: any) 依赖 packadd 后执行
---- Runs after dependency packadd
----@field build_cmd? string|string[]|fun(name: string, dir: string) 构建：shell / :Vim 命令 / 函数
+---@field module? string 有 config 时必填的 require 路径（不再从 name 猜测）
+--- Require path; required when config is set (not inferred from name)
+---@field config? fun(plugin: any) 依赖 packadd 后回调（不注入主插件 utils/var）
+--- Post-packadd callback (main plugin utils/var are not injected)
+---@field utils? table<string, string> 依赖自身额外 require，仅注入该依赖 config
+--- Dependency-local extra requires, injected into this dep config only
+---@field build? string|string[]|fun(name: string, dir: string) 构建：shell / :Vim 命令 / 函数
 --- Build: shell, :Vim command, or function
----@field deps? (string|Pack.Dep)[] 嵌套依赖
+---@field dependencies? (string|Pack.Dep)[] 嵌套依赖
 --- Nested dependencies
----@field immediately? boolean true 且有 setup 时，install/eager 阶段抢先加载（默认 false）
---- If true with setup, load early during install/eager (default false)
 ---@field version? string|table 版本（写入 [1]/src 简写时）
 --- Version (when using [1]/src shorthand)
 
@@ -42,18 +42,16 @@
 --- Require path (required; not inferred from name)
 ---@field name? string pack 目录名；通常由 spec 自动解析
 --- Pack directory name; usually resolved from spec
----@field deps? (string|Pack.Dep)[] 依赖列表（元素可为 URL 字符串或 Dep 表）
+---@field dependencies? (string|Pack.Dep)[] 依赖列表（元素可为 URL 字符串或 Dep 表）
 --- Dependency list (URL string or Dep table)
----@field utils? table<string, string> 额外 require：键为合法标识符；setfenv 注入；lua_ls 由 hooks 内置插件识别
---- Extra requires: identifier keys; setfenv inject; lua_ls via built-in hooks plugin
 ---@field disabled? boolean true 时登记但不加载
 --- If true, register but do not load
----@field build_cmd? string|string[]|fun(name: string, dir: string) 安装后构建：shell / ":TSUpdate" / function
+---@field build? string|string[]|fun(name: string, dir: string) 安装后构建：shell / ":TSUpdate" / function
 --- Post-install build: shell, ":TSUpdate", or function
----@field lock? boolean true 时跳过 Pack.update（连同依赖）
---- Skip Pack.update for this plugin and its deps when true
----@field build_id? string 可选；变更时强制重建（函数 build_cmd 指纹补充）
---- Optional; change to force rebuild (supplements function build_cmd fingerprint)
+---@field lock? boolean true 时跳过 :PackUpdate：本插件及其全部 dependencies 一并锁定
+--- Skip :PackUpdate for this plugin and its entire dependency tree when true
+---@field build_id? string 可选；变更时强制重建（函数 build 指纹补充）
+--- Optional; change to force rebuild (supplements function build fingerprint)
 ---@field _registered? boolean 内部：已完成 Pack.register
 --- Internal: already passed through Pack.register
 
@@ -66,10 +64,14 @@
 ---@class Pack.LoadOpts
 ---@field event? Pack.AutocmdEvent|Pack.AutocmdEvent[] autocmd 第一参；省略则立即加载
 --- Autocmd arg 1; omit to load immediately
----@field time_sequence? boolean true → vim.schedule 后再 Pack.load（默认 false）
---- If true, Pack.load via vim.schedule (default false)
----@field config? fun(plugin: any) 加载后回调；utils 键经 setfenv 可直接使用（如 menu.xxx）
---- Post-load callback; utils keys usable as bare names via setfenv (e.g. menu.xxx)
+---@field defer? boolean true → vim.schedule 后再执行 :load（默认 false）
+--- If true, run :load via vim.schedule (default false)
+---@field utils? table<string, string> 额外 require：仅注入 var 环境（不进 config）；值为模块路径，运行时 require，类型随模块
+--- Extra requires → var env only; values are module paths, required at runtime, typed by module
+---@field var? table<string, any> 任意数据/方法（可互调，任意参数/返回值）；`{ use=true, callback=fun(...): any }` 在 setup 后执行一次
+--- Any data/methods (mutually callable, any args/returns); `{ use=true, callback=... }` runs once after setup
+---@field config? fun(plugin: any, ...: any): any 仅做 setup；可调用 var，不可直接用 utils
+--- Setup only; may call var, not utils directly
 ---@field once? boolean 透传 autocmd
 --- Pass-through autocmd option
 ---@field pattern? string|string[] 透传 autocmd
@@ -113,7 +115,6 @@
 ---@class Pack
 ---@field boot fun(config: string): Pack.BootHandle
 ---@field register fun(src_or_plugin: string|Pack.Plugin, opts?: Pack.Plugin): Pack.Handle|nil
----@field update fun(targets?: string[], opts?: table)
 ---@field lsp Pack.Lsp
 ---@field root fun(markers: string|(string|string[])[]): fun(bufnr: integer, on_dir: fun(dir: string))
 

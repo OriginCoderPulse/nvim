@@ -11,8 +11,8 @@ local function shield(dep, protected, stack)
 	end
 	stack[item.name] = true
 	protected[item.name] = true
-	if item.deps then
-		for _, nested in ipairs(item.deps) do
+	if item.dependencies then
+		for _, nested in ipairs(item.dependencies) do
 			shield(nested, protected, stack)
 		end
 	end
@@ -41,15 +41,15 @@ local function protect()
 			if idle[name] then
 				protected[name] = true
 			end
-			if P.deps then
-				for _, dep in ipairs(P.deps) do
+			if P.dependencies then
+				for _, dep in ipairs(P.dependencies) do
 					shield(dep, protected, {})
 				end
 			end
 		else
 			protected[name] = true
-			if P.deps then
-				for _, dep in ipairs(P.deps) do
+			if P.dependencies then
+				for _, dep in ipairs(P.dependencies) do
 					shield(dep, protected, {})
 				end
 			end

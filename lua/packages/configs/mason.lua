@@ -1,7 +1,7 @@
 Pack.register({
 	"https://github.com/mason-org/mason.nvim",
 	module = "mason",
-	deps = {
+	dependencies = {
 		"https://github.com/mason-org/mason-registry",
 	},
 }):load({

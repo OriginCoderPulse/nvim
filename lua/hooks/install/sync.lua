@@ -18,7 +18,7 @@ return function(active_specs, disabled_specs, opts)
 		Pack.disabled[name] = true
 	end
 
-	local protected = Pack.protect()
+	local protected = require("hooks.deps.protect").protect()
 	local pack_dir = vim.fn.stdpath("data") .. "/site/pack"
 	local installed_plugins = {}
 	local seen = {}
@@ -59,21 +59,17 @@ return function(active_specs, disabled_specs, opts)
 	local kept_shared = {}
 
 	for _, installed in ipairs(installed_plugins) do
-		if protected[installed] then
-			goto continue
+		if not protected[installed] then
+			if require("hooks.deps.needed")(installed) then
+				local dependents = require("hooks.deps.protect").users(installed)
+				kept_shared[#kept_shared + 1] = installed
+					.. " (仍被 "
+					.. table.concat(dependents, ", ")
+					.. " 使用)"
+			else
+				to_delete[#to_delete + 1] = installed
+			end
 		end
-
-		if Pack.needed(installed) then
-			local dependents = Pack.users(installed)
-			kept_shared[#kept_shared + 1] = installed
-				.. " (仍被 "
-				.. table.concat(dependents, ", ")
-				.. " 使用)"
-			goto continue
-		end
-
-		to_delete[#to_delete + 1] = installed
-		::continue::
 	end
 
 	if #kept_shared > 0 then

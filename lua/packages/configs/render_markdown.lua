@@ -4,6 +4,7 @@ Pack.register({
 }):load({
 	event = "FileType",
 	pattern = { "markdown" },
+	once = true,
 	config = function(plugin)
 		plugin.setup({
 			file_types = { "markdown" },

@@ -4,7 +4,7 @@ Pack.register({
 }):load({
 	event = "BufReadPost",
 	once = true,
-	time_sequence = true,
+	defer = true,
 	config = function(plugin)
 		plugin.setup({})
 

@@ -1,21 +1,18 @@
---- 登记 build_cmd：已安装未构建则立即 ensure；并监听 PackChanged 在安装/更新后立刻重建
---- Register build_cmd: ensure immediately if installed-but-unbuilt; rebuild on PackChanged install/update
+--- 登记 build；PackChanged(install/update) 只清 stamp，真正构建留给安装后 batch
+--- Register build; PackChanged only clears stamp — batch runs after install
 local stamp = require("hooks.build.stamp")
-local build_cmds = {}
+local cmds = require("hooks.build.cmds")
 
 ---@param name string
----@param build_cmd string|string[]|function
-return function(name, build_cmd)
+---@param build string|string[]|function
+return function(name, build)
 	local Pack = _G.Pack
 	name = Pack.parse(name)
-	if Pack.disabled[name] or not build_cmd then
-		build_cmds[name] = nil
+	if Pack.disabled[name] or not build then
+		cmds.set(name, nil)
 		return
 	end
-	build_cmds[name] = build_cmd
-	-- 打开 Neovim / 登记时：磁盘已有插件但无 stamp → 立刻 build（不等懒加载）
-	-- On open/register: installed but no stamp → build now (do not wait for lazy load)
-	Pack.ensure(name, build_cmd)
+	cmds.set(name, build)
 
 	Pack._listeners = Pack._listeners or {}
 	if Pack._listeners.build then
@@ -26,12 +23,13 @@ return function(name, build_cmd)
 	vim.api.nvim_create_autocmd("PackChanged", {
 		group = vim.api.nvim_create_augroup("PackBuildListen", { clear = true }),
 		callback = function(ev)
-			local cmd = build_cmds[ev.data.spec.name]
-			if cmd and (ev.data.kind == "update" or ev.data.kind == "install") then
-				-- 安装/更新完成立即重建，不等插件 load / UI 启动事件
-				-- Rebuild as soon as install/update finishes; do not wait for plugin load / UI
+			if not cmds.get(ev.data.spec.name) then
+				return
+			end
+			if ev.data.kind == "update" or ev.data.kind == "install" then
+				-- 仅失效 stamp；统一构建在 install 结束后的 batch
+				-- Invalidate stamp only; unified build runs in post-install batch
 				stamp.clear(ev.data.path)
-				Pack.build(ev.data.spec.name, cmd)
 			end
 		end,
 	})
