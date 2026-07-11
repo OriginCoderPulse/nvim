@@ -1,6 +1,3 @@
--- === 自定义命令 ===
--- === Custom commands ===
-
 local update = require("hooks.update").update
 local complete = require("hooks.update.complete")
 local rebuild = require("hooks.build.rebuild")

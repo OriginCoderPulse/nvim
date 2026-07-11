@@ -1,4 +1,3 @@
---
 Pack.register({
 	"https://github.com/saghen/blink.cmp",
 	dependencies = {

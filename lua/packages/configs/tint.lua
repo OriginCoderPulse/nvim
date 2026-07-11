@@ -1,5 +1,3 @@
--- tint
-
 Pack.register({
 	"https://github.com/OriginCoderPulse/Tint.git",
 	module = "tint",
