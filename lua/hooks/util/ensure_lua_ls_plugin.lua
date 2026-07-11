@@ -15,34 +15,30 @@ local function plugin_path()
 	return vim.fn.stdpath("config") .. "/lua/hooks/lsp_plugin/pack_utils.lua"
 end
 
---- 写入 lua_ls logpath/trusted，避免交互信任失败导致插件静默不加载
---- Write logpath/trusted so plugin loads without interactive trust prompt
+--- 仅信任 hooks 内置 pack_utils 路径（写入 trusted，避免交互询问）
+--- Trust only the built-in pack_utils path (write trusted; skip interactive prompt)
 ---@param path string
 local function ensure_trusted(path)
-	local candidates = {
-		vim.fn.stdpath("log") .. "/lua-language-server",
-		vim.fn.stdpath("cache") .. "/lua-language-server",
-		vim.fn.stdpath("state") .. "/lua-language-server",
-	}
-	for _, dir in ipairs(candidates) do
-		vim.fn.mkdir(dir, "p")
-		local trusted = dir .. "/trusted"
-		local existing = ""
-		if vim.fn.filereadable(trusted) == 1 then
-			existing = table.concat(vim.fn.readfile(trusted), "\n")
-		end
-		if not existing:find(path, 1, true) then
-			local lines = {}
-			if existing ~= "" then
-				for line in (existing .. "\n"):gmatch("([^\n]*)\n") do
-					if line ~= "" then
-						lines[#lines + 1] = line
-					end
+	-- 只写 state，避免扩大 log/cache 信任面
+	-- Only state dir; do not widen log/cache trust surface
+	local dir = vim.fn.stdpath("state") .. "/lua-language-server"
+	vim.fn.mkdir(dir, "p")
+	local trusted = dir .. "/trusted"
+	local existing = ""
+	if vim.fn.filereadable(trusted) == 1 then
+		existing = table.concat(vim.fn.readfile(trusted), "\n")
+	end
+	if not existing:find(path, 1, true) then
+		local lines = {}
+		if existing ~= "" then
+			for line in (existing .. "\n"):gmatch("([^\n]*)\n") do
+				if line ~= "" then
+					lines[#lines + 1] = line
 				end
 			end
-			lines[#lines + 1] = path
-			vim.fn.writefile(lines, trusted)
 		end
+		lines[#lines + 1] = path
+		vim.fn.writefile(lines, trusted)
 	end
 end
 
@@ -59,12 +55,8 @@ return function()
 
 	local library = {
 		vim.env.VIMRUNTIME,
-		-- Pack / pack_types 注解，避免 Pack.register 等被推成 fun()
-		-- Pack / pack_types annotations so Pack.register is not inferred as fun()
 		vim.fn.stdpath("config") .. "/lua",
 	}
-	-- 让 require("blink...") / require("snacks...") 能解析到 pack 插件以提供补全
-	-- Resolve pack plugins so require() yields real types for completion
 	for _, rtp in ipairs(vim.opt.runtimepath:get()) do
 		if rtp:find("[/\\]site[/\\]pack[/\\]", 1) or rtp:find("[/\\]lazy[/\\]", 1) then
 			library[#library + 1] = rtp
@@ -72,9 +64,10 @@ return function()
 	end
 
 	vim.lsp.config("lua_ls", {
-		cmd = { "lua-language-server", "--develop" },
+		-- 不用 --develop：缩小 LSP 能力面；信任靠 trusted + trustByClient
+		-- No --develop: smaller LSP surface; trust via trusted + trustByClient
+		cmd = { "lua-language-server" },
 		init_options = {
-			-- 跳过「是否信任插件」询问（插件由 hooks 内置提供）
 			trustByClient = true,
 		},
 		settings = {

@@ -1,10 +1,9 @@
---- 持久化构建失败列表（供 :PackReBuild；不影响 stamp / 下次启动 batch）
---- Persist failed builds for :PackReBuild (does not replace stamp / next-boot batch)
+--- 持久化构建失败列表（供 :PackReBuild；原子写防多实例丢项）
+--- Persist failed builds for :PackReBuild (atomic write vs multi-instance clobber)
 local path = vim.fn.stdpath("state") .. "/pack-hooks-build-failed.json"
 
 local M = {}
 --- 会话内缓存，避免并行 build 同时 read-modify-write 丢项
---- Session cache so parallel builds do not clobber each other on disk
 local cache = nil
 
 ---@return table<string, boolean>
@@ -47,7 +46,9 @@ local function write(set)
 		list[#list + 1] = name
 	end
 	table.sort(list)
-	vim.fn.writefile({ vim.json.encode(list) }, path)
+	local tmp = path .. ".tmp." .. tostring(vim.uv.os_getpid())
+	vim.fn.writefile({ vim.json.encode(list) }, tmp)
+	vim.uv.fs_rename(tmp, path)
 end
 
 ---@return string[]

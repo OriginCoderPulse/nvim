@@ -1,20 +1,49 @@
---- 从 vim.pack spec 解析插件目录名
---- Parse plugin directory name from vim.pack spec
+--- 从 vim.pack spec 解析并校验插件目录名
+--- Parse and validate plugin directory name from vim.pack spec
+---
+--- 禁止路径穿越与 glob 元字符（.. / * ? [ ] \ /）
+--- Reject path traversal and glob metacharacters
+
+---@param name string
+---@return string
+local function validate_name(name)
+	if type(name) ~= "string" or name == "" then
+		error("invalid pack name: empty")
+	end
+	name = name:gsub("%.git$", "")
+	if name == "." or name == ".." then
+		error("invalid pack name: " .. name)
+	end
+	-- 禁止路径分隔与 glob；允许常见插件名字符（含 ._-）
+	-- No path separators / globs; allow typical plugin name chars
+	if name:find("[/\\]") or name:find("[%*?%[%]]") then
+		error("invalid pack name (path/glob chars): " .. name)
+	end
+	if not name:match("^[%w][%w%._%-]*$") then
+		error("invalid pack name (charset): " .. name)
+	end
+	return name
+end
+
 local function parse(spec)
+	local name
 	if type(spec) == "table" then
 		if spec.name then
-			return spec.name:gsub("%.git$", "")
+			name = spec.name
+		else
+			spec = spec.src or spec[1]
 		end
-		spec = spec.src or spec[1]
 	end
-	if type(spec) ~= "string" or spec == "" then
-		error("invalid pack spec: " .. vim.inspect(spec))
-	end
-	local name = spec:match("([^/]+)$")
 	if not name then
-		error("cannot parse plugin name from spec: " .. spec)
+		if type(spec) ~= "string" or spec == "" then
+			error("invalid pack spec: " .. vim.inspect(spec))
+		end
+		name = spec:match("([^/]+)$")
+		if not name then
+			error("cannot parse plugin name from spec: " .. spec)
+		end
 	end
-	return name:gsub("%.git$", "")
+	return validate_name(name)
 end
 
 return parse

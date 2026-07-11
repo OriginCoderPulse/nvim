@@ -6,7 +6,6 @@ local run = require("hooks.build.run")
 local retry = require("hooks.build.retry")
 
 ---@param names? string[] 若提供则只构建这些名字（仍须有 build 且无有效 stamp，除非 force）
---- If set, only these names (still need build + missing stamp unless force)
 ---@param opts? { force?: boolean }
 ---@return { name: string, build: string|string[]|function }[]
 local function collect_pending(names, opts)
@@ -22,9 +21,7 @@ local function collect_pending(names, opts)
 
 	local list = {}
 	for name, build in pairs(cmds.all()) do
-		local skip = (want and not want[name])
-			or Pack.disabled[name]
-			or false
+		local skip = (want and not want[name]) or Pack.disabled[name] or false
 		local dir = not skip and Pack.path(name) or nil
 		local P = Pack.registry[name]
 		if not skip and not dir then
@@ -33,7 +30,9 @@ local function collect_pending(names, opts)
 		if not skip and not opts.force and stamp.current(dir, build, P and P.build_id) then
 			skip = true
 		end
-		if not skip and (Pack.building[name] or retry.pending(name)) then
+		-- 已在 building：仍纳入 todo，run 会返回 already building，再等待结果归并
+		-- Already building: still collect; run returns already building, then wait to merge
+		if not skip and retry.pending(name) and not Pack.building[name] then
 			skip = true
 		end
 		if not skip then
@@ -44,6 +43,35 @@ local function collect_pending(names, opts)
 		return a.name < b.name
 	end)
 	return list
+end
+
+--- 等待已在进行的 build 结束，按 stamp 归入 ok/fail
+--- Wait for in-flight build; classify via stamp
+---@param item { name: string, build: string|string[]|function }
+---@param on_settled fun(ok: boolean)
+local function wait_inflight(item, on_settled)
+	local Pack = _G.Pack
+	local timer = vim.uv.new_timer()
+	if not timer then
+		on_settled(false)
+		return
+	end
+	local ticks = 0
+	timer:start(
+		50,
+		50,
+		vim.schedule_wrap(function()
+			ticks = ticks + 1
+			if Pack.building[item.name] and ticks < 6000 then
+				return
+			end
+			timer:stop()
+			timer:close()
+			local dir = Pack.path(item.name)
+			local P = Pack.registry[item.name]
+			on_settled(dir ~= nil and stamp.current(dir, item.build, P and P.build_id))
+		end)
+	)
 end
 
 ---@class Pack.BuildBatchResult
@@ -84,6 +112,15 @@ local function batch(on_done, names, opts)
 		})
 	end
 
+	local function settle(name, ok)
+		if ok then
+			ok_names[#ok_names + 1] = name
+		else
+			fail_names[#fail_names + 1] = name
+		end
+		one_done()
+	end
+
 	for _, item in ipairs(todo) do
 		retry.reset(item.name)
 		if opts.force then
@@ -94,14 +131,14 @@ local function batch(on_done, names, opts)
 		end
 		run(item.name, item.build, function(ok, err)
 			if ok then
-				ok_names[#ok_names + 1] = item.name
+				settle(item.name, true)
 			elseif err == "already building" then
-				-- 与 ensure 重叠：不记失败，构建仍在进行
-				-- Overlap with ensure: not a failure; build still in progress
+				wait_inflight(item, function(built_ok)
+					settle(item.name, built_ok)
+				end)
 			else
-				fail_names[#fail_names + 1] = item.name
+				settle(item.name, false)
 			end
-			one_done()
 		end, { quiet = true, no_retry = true })
 	end
 end

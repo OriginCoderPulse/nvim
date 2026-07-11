@@ -33,16 +33,34 @@ return function(active_specs, disabled_specs)
 		return vim.fn.sha256(table.concat(keys, "\0"))
 	end
 
-	--- 快路径：只查目录是否存在，不做 git healthy（省 ~100ms/启动）
-	--- Fast path: directory presence only, no git healthy (~100ms/boot saved)
-	local function dirs_present()
+	--- 目录存在且仓库完整：有 .git 时走 healthy（含 git rev-parse）；否则非空即可
+	--- Dirs present and complete: git repos use healthy (rev-parse); else non-empty
+	local healthy = require("hooks.deps.healthy")
+	local function dirs_healthy()
+		local seen = {}
+		local function check_name(name)
+			if seen[name] then
+				return true
+			end
+			seen[name] = true
+			local dir = Pack.path(name)
+			if not dir then
+				return false
+			end
+			return healthy(dir)
+		end
 		for name in pairs(Pack.registry) do
-			if not Pack.path(name) then
+			if not check_name(name) then
 				return false
 			end
 		end
 		for _, spec in ipairs(active_specs) do
-			if not Pack.path(Pack.parse(spec)) then
+			if not check_name(Pack.parse(spec)) then
+				return false
+			end
+		end
+		for _, spec in ipairs(disabled_specs) do
+			if not check_name(Pack.parse(spec)) then
 				return false
 			end
 		end
@@ -66,9 +84,9 @@ return function(active_specs, disabled_specs)
 		return
 	end
 
-	-- 指纹命中 + 目录在：跳过 git 检查与 sync/repair
-	-- Stamp hit + dirs present: skip git checks and sync/repair
-	if stamp_lines[1] == fp and dirs_present() then
+	-- 指纹命中 + 目录完整：跳过 sync/repair
+	-- Stamp hit + dirs healthy: skip sync/repair
+	if stamp_lines[1] == fp and dirs_healthy() then
 		vim.pack.add(sorted, { confirm = false, load = false })
 		after_install()
 		return
@@ -77,6 +95,8 @@ return function(active_specs, disabled_specs)
 	sync(active_specs, disabled_specs)
 	repair()
 	vim.pack.add(sorted, { confirm = false, load = false })
-	vim.fn.writefile({ fp }, stamp_path)
+	local tmp = stamp_path .. ".tmp." .. tostring(vim.uv.os_getpid())
+	vim.fn.writefile({ fp }, tmp)
+	vim.uv.fs_rename(tmp, stamp_path)
 	after_install()
 end

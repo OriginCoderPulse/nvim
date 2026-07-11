@@ -126,6 +126,18 @@ return function(name, build_cmd, on_finish, opts)
 				table.insert(final_cmd, word)
 			end
 		else
+			for i, word in ipairs(build_cmd) do
+				if type(word) ~= "string" then
+					Pack.building[name] = false
+					stamp.clear(dir)
+					failed.add(name)
+					vim.notify(name .. " build failed: argv[" .. i .. "] must be string", vim.log.levels.ERROR)
+					if on_finish then
+						on_finish(false, "invalid argv")
+					end
+					return
+				end
+			end
 			final_cmd = build_cmd
 		end
 		if type(final_cmd) ~= "table" or #final_cmd == 0 or type(final_cmd[1]) ~= "string" then

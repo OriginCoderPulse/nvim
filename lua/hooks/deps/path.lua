@@ -30,7 +30,16 @@ end
 return function(name)
 	listen()
 	local Pack = _G.Pack
-	name = Pack.parse(name)
+	local ok, parsed = pcall(Pack.parse, name)
+	if not ok then
+		return nil
+	end
+	name = parsed
+	-- 二次防御：绝不把含分隔符的 name 拼进路径
+	-- Defense in depth: never join names with separators into paths
+	if name:find("[/\\]") or name == ".." or name == "." then
+		return nil
+	end
 	local hit = cache[name]
 	if hit ~= nil then
 		return hit ~= false and hit or nil
@@ -47,9 +56,19 @@ return function(name)
 		end
 	end
 
-	local paths = vim.api.nvim_get_runtime_file("pack/*/*/" .. name, true)
-	if #paths == 0 then
-		paths = vim.fn.globpath(vim.o.packpath, "pack/*/*/" .. name, 0, 1)
+	-- 字面量路径查找，避免 glob 元字符
+	-- Literal path lookup; avoid glob metacharacters
+	local paths = {}
+	for _, root in ipairs(vim.opt.packpath:get()) do
+		for _, kind in ipairs({ "opt", "start" }) do
+			local matches = vim.fn.glob(root .. "/pack/*/" .. kind .. "/" .. name, false, true)
+			for _, p in ipairs(matches) do
+				-- 确认末段等于 name（防 glob 误匹配）
+				if vim.fs.basename(p) == name then
+					paths[#paths + 1] = p
+				end
+			end
+		end
 	end
 	if #paths == 0 then
 		cache[name] = false

@@ -351,18 +351,17 @@ function OnSetText(uri, text)
 	local seen = {}
 
 	local stub = {
-		-- setfenv 场景下的误报；不关补全
-		"---@diagnostic disable: undefined-global,undefined-field,unused-local,unused-function,unused-vararg,lowercase-global,missing-return,redundant-return-value,redundant-parameter,missing-parameter,param-type-mismatch,assign-type-mismatch,return-type-mismatch,cast-local-type,need-check-nil,missing-fields,inject-field\n",
-		"if false then --[[ Pack.utils/var → lua_ls completion ]]\n",
+		"---@diagnostic disable: undefined-global,undefined-field,unused-local,unused-function,unused-vararg,lowercase-global,missing-return,redundant-return-value,redundant-parameter,missing-parameter,param-type-mismatch,assign-type-mismatch,return-type-mismatch,cast-local-type,need-check-nil,missing-fields,inject-field,empty-block\n",
 	}
 
 	local refs = {}
+	local body = {}
 
 	-- utils：真实模块 → menu./lsp_config. 等补全
 	for name, path in pairs(utils) do
 		seen[name] = true
 		refs[#refs + 1] = name
-		stub[#stub + 1] = ("  %s = require(%q)\n"):format(name, path)
+		body[#body + 1] = ("  %s = require(%q)\n"):format(name, path)
 	end
 
 	-- var：调用侧 fun(...): any（任意实参）；非函数 any
@@ -372,19 +371,24 @@ function OnSetText(uri, text)
 				seen[name] = true
 				refs[#refs + 1] = name
 				if is_top_level_fn(block, name) then
-					stub[#stub + 1] = ("  ---@type fun(...): any\n  %s = function(...) return nil end\n"):format(name)
+					body[#body + 1] = ("  ---@type fun(...): any\n  %s = function(...) return nil end\n"):format(name)
 				else
-					stub[#stub + 1] = ("  ---@type any\n  %s = {}\n"):format(name)
+					body[#body + 1] = ("  ---@type any\n  %s = {}\n"):format(name)
 				end
 			end
 		end
 	end
 
+	-- 无 utils/var 时不注入空 if false（会触发 empty-block）
 	if #refs > 0 then
 		table.sort(refs)
+		stub[#stub + 1] = "if false then --[[ Pack.utils/var → lua_ls completion ]]\n"
+		for _, line in ipairs(body) do
+			stub[#stub + 1] = line
+		end
 		stub[#stub + 1] = ("  local _PackUsed = { %s }\n"):format(table.concat(refs, ", "))
+		stub[#stub + 1] = "end\n"
 	end
-	stub[#stub + 1] = "end\n"
 
 	---@type diff[]
 	local diffs = {
