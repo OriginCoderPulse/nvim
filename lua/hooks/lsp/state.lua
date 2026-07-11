@@ -18,7 +18,7 @@ local M = {
 ---@param name string
 ---@return string
 function M.norm(name)
-	return name:gsub("%.lua$", "")
+	return (name:gsub("%.lua$", ""))
 end
 
 return M

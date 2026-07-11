@@ -2,7 +2,6 @@ local notify_once = require("hooks.util.notify_once")
 
 local load_dep
 
----@param dep any
 ---@param item table
 ---@return boolean
 local function run_setup(item)

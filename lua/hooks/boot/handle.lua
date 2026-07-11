@@ -38,12 +38,6 @@ end
 local M = {}
 M.__index = M
 
----@class Pack.BootCustomEntry
----@field [1] string 模块路径，如 "core.options"
---- Module path, e.g. "core.options"
----@field immediately? boolean true：在 hooks（packages 配置）之前加载；缺省/false：最后加载（也可直接写字符串）
---- true: load before hooks (packages configs); default/false: load last (plain string also ok)
-
 ---@param config string
 ---@return Pack.BootHandle
 function M.new(config)

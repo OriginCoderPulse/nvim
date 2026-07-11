@@ -6,7 +6,7 @@
 --- Repository URL
 ---@field name? string pack 目录名（覆盖从 URL 解析的结果）
 --- Pack directory name (overrides URL-derived name)
----@field version? string|vim.VersionRange 版本 / 分支 / tag / version range（vim.pack）
+---@field version? string|table 版本 / 分支 / tag / version range（vim.pack）
 --- Version, branch, tag, or version range (vim.pack)
 
 ---@alias Pack.Spec string|Pack.SpecTable
@@ -46,6 +46,8 @@
 --- Skip Pack.update for this plugin and its deps when true
 ---@field build_id? string 可选；变更时强制重建（函数 build_cmd 指纹补充）
 --- Optional; change to force rebuild (supplements function build_cmd fingerprint)
+---@field _registered? boolean 内部：已完成 Pack.register
+--- Internal: already passed through Pack.register
 
 --- nvim_create_autocmd 第一参事件名
 --- Autocmd event name for nvim_create_autocmd arg 1
@@ -83,6 +85,9 @@
 --- `true`: before hooks; default: load last (plain string `"mod"` also ok)
 
 ---@class Pack.BootHandle
+---@field _config string
+---@field _custom Pack.BootCustomEntry[]
+---@field _ran boolean
 ---@field custom fun(self: Pack.BootHandle, entries?: (string|Pack.BootCustomEntry)[]): Pack 登记 custom 并启动。字符串项=最后加载；`{ mod, immediately=true }`=hooks 前
 --- Register custom modules and boot. String = load last; `{ mod, immediately=true }` = before hooks
 ---@field run fun(self: Pack.BootHandle): Pack 启动（无 custom 时也可）

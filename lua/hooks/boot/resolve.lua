@@ -1,7 +1,7 @@
 ---@param dir string
 ---@return string
 local function path_to_module_prefix(dir)
-	return dir:gsub("\\", "/"):gsub("/", ".")
+	return (dir:gsub("\\", "/"):gsub("/", "."))
 end
 
 ---@param config string
