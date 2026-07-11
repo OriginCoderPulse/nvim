@@ -20,25 +20,27 @@ return function(name, build_cmd)
 	end
 	Pack.building[name] = true
 
+	-- vim.system on_exit 在 fast event 里；vim.fn（sha256/writefile 等）必须 schedule
+	-- vim.system on_exit is a fast event; vim.fn (sha256/writefile/…) must be scheduled
 	local function finish(ok, err_msg)
-		Pack.building[name] = false
-		if ok then
-			retry.reset(name)
-			local P = Pack.registry[name]
-			stamp.write(dir, build_cmd, P and P.build_id)
-			vim.notify("✅ " .. name .. " build success.", vim.log.levels.INFO)
-			vim.schedule(function()
+		vim.schedule(function()
+			Pack.building[name] = false
+			if ok then
+				retry.reset(name)
+				local P = Pack.registry[name]
+				stamp.write(dir, build_cmd, P and P.build_id)
+				vim.notify("✅ " .. name .. " build success.", vim.log.levels.INFO)
 				vim.api.nvim_exec_autocmds("User", {
 					pattern = "PackBuildDone",
 					data = { name = name },
 				})
 				require("hooks.load.eager")()
-			end)
-		else
-			stamp.clear(dir)
-			vim.notify("❌ " .. name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
-			retry.schedule(name, build_cmd)
-		end
+			else
+				stamp.clear(dir)
+				vim.notify("❌ " .. name .. " build failed: " .. tostring(err_msg), vim.log.levels.ERROR)
+				retry.schedule(name, build_cmd)
+			end
+		end)
 	end
 
 	if type(build_cmd) == "function" then

@@ -14,6 +14,7 @@ Pack.register({
 		lspkind = "lspkind",
 		devicons = "nvim-web-devicons",
 	},
+	build_cmd = "cargo build --release",
 }):load({
 	event = { "InsertEnter", "CmdlineEnter", "LspAttach" },
 	once = true,
@@ -37,8 +38,6 @@ Pack.register({
 				end,
 			}
 		end
-
-		plugin.build():pwait()
 
 		plugin.setup({
 			keymap = {

@@ -1,5 +1,5 @@
---- 监听 PackChanged，安装/更新后自动重新构建（单一 autocmd，按插件名查表）
---- Listen PackChanged; rebuild after install/update (one autocmd, lookup by plugin name)
+--- 登记 build_cmd：已安装未构建则立即 ensure；并监听 PackChanged 在安装/更新后立刻重建
+--- Register build_cmd: ensure immediately if installed-but-unbuilt; rebuild on PackChanged install/update
 local stamp = require("hooks.build.stamp")
 local build_cmds = {}
 
@@ -13,6 +13,9 @@ return function(name, build_cmd)
 		return
 	end
 	build_cmds[name] = build_cmd
+	-- 打开 Neovim / 登记时：磁盘已有插件但无 stamp → 立刻 build（不等懒加载）
+	-- On open/register: installed but no stamp → build now (do not wait for lazy load)
+	Pack.ensure(name, build_cmd)
 
 	Pack._listeners = Pack._listeners or {}
 	if Pack._listeners.build then
@@ -25,6 +28,8 @@ return function(name, build_cmd)
 		callback = function(ev)
 			local cmd = build_cmds[ev.data.spec.name]
 			if cmd and (ev.data.kind == "update" or ev.data.kind == "install") then
+				-- 安装/更新完成立即重建，不等插件 load / UI 启动事件
+				-- Rebuild as soon as install/update finishes; do not wait for plugin load / UI
 				stamp.clear(ev.data.path)
 				Pack.build(ev.data.spec.name, cmd)
 			end
