@@ -7,6 +7,14 @@ Pack.register({
 }):load({
 	event = "UIEnter",
 	once = true,
+	var = {
+		colorscheme = {
+			use = true,
+			callback = function()
+				vim.cmd.colorscheme("catppuccin")
+			end,
+		},
+	},
 	config = function(plugin)
 		plugin.setup({
 			flavour = "mocha",
@@ -88,6 +96,5 @@ Pack.register({
 				}
 			end,
 		})
-		vim.cmd.colorscheme("catppuccin")
 	end,
 })
