@@ -1,1 +1,7 @@
-{}
+{
+  "github": {
+    "prefix": "github",
+    "body": ["https://github.com/$1"],
+    "description": "github link"
+  }
+}
