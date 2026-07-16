@@ -2,9 +2,7 @@ Pack.register({
 	"https://github.com/MeanderingProgrammer/render-markdown.nvim",
 	module = "render-markdown",
 }):load({
-	event = "FileType",
-	pattern = { "markdown" },
-	once = true,
+	ft = "markdown",
 	config = function(plugin)
 		plugin.setup({
 			file_types = { "markdown" },

@@ -139,20 +139,4 @@ return {
 		end,
 		{ desc = "Live grep" },
 	},
-	{
-		"n",
-		"<leader>fr",
-		function()
-			vim.cmd.OverseerRun()
-		end,
-		{ desc = "Run overseer task" },
-	},
-	{
-		"n",
-		"<leader>ft",
-		function()
-			vim.cmd.OverseerToggle()
-		end,
-		{ desc = "Toggle overseer task list" },
-	},
 }

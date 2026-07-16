@@ -5,7 +5,12 @@ Pack.register({
 	},
 	module = "nvim-surround",
 }):load({
-	event = "BufReadPost",
+	keys = {
+		"ys",
+		"ds",
+		"cs",
+		{ "x", "S" },
+	},
 	config = function(plugin)
 		plugin.setup({})
 	end,

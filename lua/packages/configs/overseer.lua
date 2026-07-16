@@ -2,9 +2,24 @@ Pack.register({
 	"https://github.com/stevearc/overseer.nvim",
 	module = "overseer",
 }):load({
-	event = "UIEnter",
-	once = true,
-	defer = true,
+	keys = {
+		{
+			"n",
+			"<leader>fr",
+			function(plugin)
+				plugin.run()
+			end,
+			{ desc = "Run overseer task" },
+		},
+		{
+			"n",
+			"<leader>ft",
+			function(plugin)
+				plugin.toggle()
+			end,
+			{ desc = "Toggle overseer task list" },
+		},
+	},
 	config = function(plugin)
 		plugin.setup({
 			dap = false,

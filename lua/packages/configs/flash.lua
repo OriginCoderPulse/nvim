@@ -2,16 +2,14 @@ Pack.register({
 	"https://github.com/folke/flash.nvim",
 	module = "flash",
 }):load({
-	event = "BufReadPost",
-	once = true,
-	var = {
-		jump = {
-			use = true,
-			callback = function(plugin)
-				vim.keymap.set({ "n", "x", "o" }, "f", function()
-					plugin.jump()
-				end, { desc = "Flash" })
+	keys = {
+		{
+			{ "n", "x", "o" },
+			"f",
+			function(plugin)
+				plugin.jump()
 			end,
+			{ desc = "Flash" },
 		},
 	},
 	config = function(plugin)
