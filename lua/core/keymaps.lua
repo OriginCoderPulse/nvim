@@ -5,12 +5,32 @@ return {
 	{ "n", "<leader>ww", "<C-w><C-w>" },
 	{ "n", "<leader>r", "<CMD>restart<CR>" },
 	{
+		"n",
+		"gd",
+		vim.lsp.buf.definition,
+		{ desc = "LSP: Go To Definition", event = "LspAttach" },
+	},
+	{
+		"n",
+		"gD",
+		vim.lsp.buf.declaration,
+		{ desc = "LSP: Go To Declaration", event = "LspAttach" },
+	},
+	{
+		"n",
+		"<leader>ld",
+		function()
+			vim.diagnostic.open_float({ source = true })
+		end,
+		{ desc = "LSP: Line Diagnostics", event = "LspAttach" },
+	},
+	{
 		{ "n", "x", "o" },
 		"<CR>",
 		function()
 			vim.treesitter.select("parent")
 		end,
-		{ desc = "Treesitter: init/expand selection" },
+		{ desc = "Treesitter: init/expand selection", event = "FileType" },
 	},
 	{
 		{ "n", "x", "o" },
@@ -18,7 +38,7 @@ return {
 		function()
 			vim.treesitter.select("child")
 		end,
-		{ desc = "Treesitter: shrink selection" },
+		{ desc = "Treesitter: shrink selection", event = "FileType" },
 	},
 	{
 		{ "n", "x", "o" },
@@ -26,7 +46,7 @@ return {
 		function()
 			vim.treesitter.select("parent")
 		end,
-		{ desc = "Treesitter: expand scope" },
+		{ desc = "Treesitter: expand scope", event = "FileType" },
 	},
 	{
 		"n",
@@ -80,7 +100,7 @@ return {
 				layout = "select",
 			})
 		end,
-		{ desc = "Open snacks help" },
+		{ desc = "Open snacks LSP config" },
 	},
 	{
 		"n",
@@ -121,7 +141,7 @@ return {
 		function()
 			Snacks.picker.git_branches({ layout = "dropdown" })
 		end,
-		{ desc = "Search for differences across multiple commits on the same branch" },
+		{ desc = "Git branches" },
 	},
 	{
 		"n",
@@ -129,7 +149,7 @@ return {
 		function()
 			Snacks.picker.buffers({ layout = "select" })
 		end,
-		{ desc = "Search for differences across multiple commits on the same branch" },
+		{ desc = "Find buffers" },
 	},
 	{
 		"n",
