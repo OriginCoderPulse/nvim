@@ -1,43 +1,16 @@
 Pack.register({
-	"https://github.com/nvim-treesitter/nvim-treesitter",
-	module = "nvim-treesitter",
-	build = ":TSUpdate",
+	"https://github.com/romus204/tree-sitter-manager.nvim",
+	module = "tree-sitter-manager",
 }):load({
-	event = "BufReadPost",
+	event = "UIEnter",
 	once = true,
-	var = {
-		attach = function(buf)
-			buf = buf or vim.api.nvim_get_current_buf()
-			local ft = vim.bo[buf].filetype
-			if ft == "" or vim.bo[buf].buftype ~= "" then
-				return
-			end
-
-			local lang = vim.treesitter.language.get_lang(ft) or ft
-			local no_err, is_added = pcall(vim.treesitter.language.add, lang)
-			if not no_err or not is_added then
-				vim.notify("🌱 Installing " .. lang .. " parser...", vim.log.levels.INFO)
-				require("nvim-treesitter").install({ lang }):wait(60000)
-				pcall(vim.treesitter.language.add, lang)
-			end
-
-			pcall(vim.treesitter.start, buf, lang)
-		end,
-		enable = {
-			use = true,
-			callback = function()
-				vim.api.nvim_create_autocmd("FileType", {
-					callback = function(ev)
-						attach(ev.buf)
-					end,
-				})
-				attach()
-			end,
-		},
-	},
 	config = function(plugin)
 		plugin.setup({
-			install_dir = vim.fn.stdpath("data") .. "/treesitter",
+			parser_dir = vim.fn.stdpath("data") .. "/site/parser",
+			query_dir = vim.fn.stdpath("data") .. "/site/queries",
+			auto_install = true,
+			min_width = 0.6,
+			min_height = 0.6,
 		})
 	end,
 })

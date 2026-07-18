@@ -98,7 +98,7 @@ Pack.register({
 							"~/.config/kitty/",
 							"~/.config/lazygit/",
 						},
-						dev = { "~/.config", "~/Documents/Work/", "~/Documents/Private/" },
+						dev = { "~/.config", "~/Documents/Work.localized/", "~/Documents/Private.localized/" },
 						max_depth = 2,
 						recent = false,
 						confirm = { "tcd", "picker_files" },
