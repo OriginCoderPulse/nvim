@@ -5,10 +5,9 @@ Pack.register({
 		"https://github.com/mason-org/mason-registry",
 	},
 }):load({
-	cmd = "Mason",
+	event = "VimEnter",
 	config = function(plugin)
 		plugin.setup({
-			PATH = "skip",
 			ui = {
 				width = 0.65,
 				height = 0.75,

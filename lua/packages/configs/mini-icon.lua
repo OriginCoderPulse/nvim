@@ -77,6 +77,7 @@ Pack.register({
 				["commands.lua"] = { glyph = "󰇄 ", hl = "MiniIconsYellow" },
 				["options.lua"] = { glyph = "󰬎 ", hl = "MiniIconsYellow" },
 				["keymaps.lua"] = { glyph = "󰌌 ", hl = "MiniIconsYellow" },
+				["lsp.lua"] = { glyph = "󰒌 ", hl = "MiniIconsYellow" },
 				["bootstrap.lua"] = { glyph = "󱑢 ", hl = "MiniIconsPurple" },
 				["www"] = { glyph = "󰇧 ", hl = "MiniIconsOrange" },
 				["LICENSE"] = { glyph = " ", hl = "MiniIconsOrange" },
@@ -208,6 +209,5 @@ Pack.register({
 				mac = { glyph = "󰀵 ", hl = "MiniIconsPurple" },
 			},
 		})
-
 	end,
 })
