@@ -30,6 +30,9 @@ Pack.register({
 				blink_cmp = { enabled = true, style = "bordered" },
 				overseer = true,
 				mason = true,
+				mini = {
+					enabled = true,
+				},
 				snacks = {
 					enabled = true,
 				},

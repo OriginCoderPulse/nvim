@@ -40,9 +40,9 @@ Pack.register({
 			},
 			pipe_table = {
 				preset = "round",
-				row = "@markup.row",
+				cell = "padded",
+				border_virtual = true,
 			},
-			win_options = { concealcursor = { rendered = "nvc" } },
 			completions = {
 				blink = { enabled = true },
 				lsp = { enabled = true },
